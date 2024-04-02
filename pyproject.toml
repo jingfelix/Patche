@@ -1,0 +1,25 @@
+[project]
+name = "ppatch"
+version = "0.0.1"
+description = "An Python version of patch."
+authors = [
+    {name = "jingfelix", email = "jingfelix@outlook.com"},
+]
+dependencies = [
+    "typer[all]>=0.9.0",
+    "pydantic>=2.5.3",
+    "whatthepatch>=1.0.5",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project.scripts]
+ppatch = "ppatch.__init__:app"
+
+[tool.pdm]
+distribution = true
