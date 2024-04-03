@@ -14,15 +14,10 @@ def apply_change(
 
     # 如果反向，则交换所有的 old 和 new
     if reverse:
-        for index, change in enumerate(changes):
-            changes[index] = Change(
-                hunk=change.hunk,
-                old=change.new,
-                new=change.old,
-                line=change.line,
-            )
+        for change in changes:
+            change.old, change.new = change.new, change.old
 
-    # TODO: 这里有个巨大的问题：diff 信息中的行号与实际行号不一致
+    # 这里有个巨大的问题：diff 信息中的行号与实际行号不一致
     # 一种修复方式：搜索 diff 每个 hunk 的上下文行，然后修改标记
 
     # 首先统计 Hunk 数
@@ -175,7 +170,7 @@ def apply_change(
 
     new_line_list = []
     for index, line in enumerate(target):
-        # TODO: 判断是否在 Flag 行附近进行了修改
+        # 判断是否在 Flag 行附近进行了修改
         # 如果该行为 changed，且前后行为flag，则也加入标记列表
         if line.changed and not line.flag:
             if index > 0 and target[index - 1].flag:
