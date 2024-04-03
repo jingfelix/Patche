@@ -5,8 +5,8 @@ import typer
 import whatthepatch
 
 from ppatch.app import BASE_DIR, PATCH_STORE_DIR, app
-from ppatch.model import File, Line
-from ppatch.utils.common import process_title
+from ppatch.model import Diff, File, Line
+from ppatch.utils.common import process_title, unpack
 from ppatch.utils.resolve import apply_change
 
 
@@ -58,14 +58,15 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
         BASE_DIR, PATCH_STORE_DIR, f"{from_commit_sha}-{process_title(filename)}.patch"
     )
 
-    for diff in whatthepatch.parse_patch(
+    for diff_ in whatthepatch.parse_patch(
         open(patch_path, mode="r", encoding="utf-8").read()
     ):
+        diff = Diff(**unpack(diff_))
         if diff.header.old_path == filename or diff.header.new_path == filename:
             try:
-                new_line_list, _ = apply_change(
+                new_line_list = apply_change(
                     diff.changes, origin_file.line_list, flag=True, flag_hunk=flag_hunk
-                )
+                ).new_line_list
             except Exception as e:
                 typer.echo(f"Failed to apply patch {from_commit_sha}")
                 typer.echo(f"Error: {e}")
@@ -86,12 +87,16 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
         with open(patch_path, mode="r", encoding="utf-8") as (f):
             diffes = whatthepatch.parse_patch(f.read())
 
-            for diff in diffes:
+            for diff_ in diffes:
+                diff = Diff(**unpack(diff_))
                 if diff.header.old_path == filename or diff.header.new_path == filename:
                     try:
-                        new_line_list, flag_line_list = apply_change(
-                            diff.changes, new_line_list
+                        apply_result = apply_change(diff.changes, new_line_list)
+                        new_line_list, flag_line_list = (
+                            apply_result.new_line_list,
+                            apply_result.flag_line_list,
                         )
+
                         typer.echo(
                             f"Apply patch {sha} to {filename}: {len(new_line_list)}"
                         )

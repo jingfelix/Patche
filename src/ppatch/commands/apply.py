@@ -33,14 +33,14 @@ def apply(
     new_line_list = origin_file.line_list
 
     with open(patch_path, mode="r", encoding="utf-8") as (f):
-        diffes_ = whatthepatch.parse_patch(f.read())
-        diffes = [Diff(**unpack(diff)) for diff in diffes_]  # type: ignore
+        diffes = whatthepatch.parse_patch(f.read())
 
-        for diff in diffes:
+        for diff_ in diffes:
+            diff = Diff(**unpack(diff_))
             if diff.header.old_path == filename or diff.header.new_path == filename:
-                new_line_list, _ = apply_change(
+                new_line_list = apply_change(
                     diff.changes, new_line_list, reverse=reverse
-                )
+                ).new_line_list
             else:
                 typer.echo(f"Do not match with {filename}, skip")
     # new_line_list, _ = _apply(patch_path, filename, new_line_list, "default")

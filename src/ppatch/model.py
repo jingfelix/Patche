@@ -54,3 +54,9 @@ class Diff(BaseModel):
     header: Header
     changes: list[Change]
     text: str
+
+
+class ApplyResult(BaseModel):
+    new_line_list: list[Line] = []
+    flag_line_list: list[Line] = []
+    change_list: list[Change] = []

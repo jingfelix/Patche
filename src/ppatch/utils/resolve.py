@@ -1,5 +1,5 @@
 from ppatch.app import MAX_DIFF_LINES
-from ppatch.model import Change, Hunk, Line
+from ppatch.model import ApplyResult, Change, Hunk, Line
 from ppatch.utils.common import find_list_positions
 
 
@@ -9,7 +9,7 @@ def apply_change(
     reverse: bool = False,
     flag: bool = False,
     flag_hunk: int = -1,
-) -> tuple[list[Line], list[Line]]:
+) -> ApplyResult:
     """Apply a diff to a target string."""
 
     # 如果反向，则交换所有的 old 和 new
@@ -187,4 +187,6 @@ def apply_change(
             )
         )
 
-    return new_line_list, flag_line_list
+    return ApplyResult(
+        new_line_list=new_line_list, flag_line_list=flag_line_list, change_list=[]
+    )
