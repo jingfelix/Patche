@@ -29,6 +29,8 @@ def apply_change(
     # TODO: 支持 -F 参数
     # 将changes按照hunk分组，注意同一个 hunk 中的 change 要进行分类，前三行要放入前置上下文，中间的要放入中间上下文，后三行要放入后置上下文
     hunk_list: list[Hunk] = []
+    conflict_hunk_num_list: list[int] = []
+    failed_hunk_list: list[Hunk] = []
     for hunk_index in hunk_indexes:
         hunk_changes = [change for change in changes if change.hunk == hunk_index]
 
@@ -81,7 +83,8 @@ def apply_change(
                 [change.line for change in changes],
             )
             if len(pos_list) == 0:
-                raise Exception(f"context lines do not exist in source")
+                return []  # 这样使得下面计算交集时一定为空
+                # raise Exception(f"context lines do not exist in source")
 
             offset_list = []
             if len(changes) == 0:
@@ -98,7 +101,10 @@ def apply_change(
 
         offset_list = list(set(offset_context) & set(offset_post))
         if len(offset_list) == 0:
-            raise Exception("offsets do not intersect")
+            failed_hunk_list.append(hunk)
+            hunk_list.remove(hunk)
+            continue
+            # raise Exception("offsets do not intersect")
 
         # 计算最小 offset
         min_offset = None
@@ -145,6 +151,7 @@ def apply_change(
                     flag=True
                     if flag and (change.hunk == flag_hunk or flag_hunk == -1)
                     else False,
+                    hunk=change.hunk,
                 ),
             )
             add_count += 1
@@ -158,6 +165,9 @@ def apply_change(
 
             del target[index]
             del_count += 1
+
+            conflict_hunk_num_list.append(change.hunk)
+
         else:
             # 对其他行也要标记 flag
             index = change.old - 1 - del_count + add_count
@@ -180,6 +190,7 @@ def apply_change(
 
             if line.flag:
                 flag_line_list.append(line)
+                conflict_hunk_num_list.append(line.hunk)
 
         new_line_list.append(
             Line(
@@ -188,5 +199,8 @@ def apply_change(
         )
 
     return ApplyResult(
-        new_line_list=new_line_list, flag_line_list=flag_line_list, change_list=[]
+        new_line_list=new_line_list,
+        flag_line_list=flag_line_list,
+        conflict_hunk_num_list=conflict_hunk_num_list,
+        failed_hunk_list=failed_hunk_list,
     )

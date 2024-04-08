@@ -38,9 +38,11 @@ def apply(
         for diff_ in diffes:
             diff = Diff(**unpack(diff_))
             if diff.header.old_path == filename or diff.header.new_path == filename:
-                new_line_list = apply_change(
+                apply_result = apply_change(
                     diff.changes, new_line_list, reverse=reverse
-                ).new_line_list
+                )
+                # TODO: 检查失败数
+                new_line_list = apply_result.new_line_list
             else:
                 typer.echo(f"Do not match with {filename}, skip")
     # new_line_list, _ = _apply(patch_path, filename, new_line_list, "default")

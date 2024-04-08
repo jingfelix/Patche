@@ -64,9 +64,11 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
         diff = Diff(**unpack(diff_))
         if diff.header.old_path == filename or diff.header.new_path == filename:
             try:
-                new_line_list = apply_change(
+                apply_result = apply_change(
                     diff.changes, origin_file.line_list, flag=True, flag_hunk=flag_hunk
-                ).new_line_list
+                )
+                # TODO: 检查失败数
+                new_line_list = apply_result.new_line_list
             except Exception as e:
                 typer.echo(f"Failed to apply patch {from_commit_sha}")
                 typer.echo(f"Error: {e}")
@@ -92,6 +94,7 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
                 if diff.header.old_path == filename or diff.header.new_path == filename:
                     try:
                         apply_result = apply_change(diff.changes, new_line_list)
+                        # TODO: 检查失败数
                         new_line_list, flag_line_list = (
                             apply_result.new_line_list,
                             apply_result.flag_line_list,

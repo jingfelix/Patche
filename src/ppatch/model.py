@@ -10,6 +10,8 @@ class Line(BaseModel):
     status: bool = True  # 标识在一轮 apply 中是否被删除
     flag: bool = False  # 标识是否是在初次标记中修改了的行
 
+    hunk: Optional[int] = None  # 如果 changed 为 True，则记录其所在的 hunk
+
     def __str__(self) -> str:
         return self.content
 
@@ -59,4 +61,5 @@ class Diff(BaseModel):
 class ApplyResult(BaseModel):
     new_line_list: list[Line] = []
     flag_line_list: list[Line] = []
-    change_list: list[Change] = []
+    conflict_hunk_num_list: list[int] = []
+    failed_hunk_list: list[Hunk] = []
