@@ -4,7 +4,8 @@ import subprocess
 import typer
 import whatthepatch
 
-from ppatch.app import BASE_DIR, PATCH_STORE_DIR, app
+from ppatch.app import app
+from ppatch.config import settings
 from ppatch.model import Diff, File, Line
 from ppatch.utils.common import process_title, unpack
 from ppatch.utils.resolve import apply_change
@@ -55,7 +56,9 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
     assert from_commit_sha == from_commit
     typer.echo(f"Apply patch {from_commit_sha} to {filename}")
     patch_path = os.path.join(
-        BASE_DIR, PATCH_STORE_DIR, f"{from_commit_sha}-{process_title(filename)}.patch"
+        settings.base_dir,
+        settings.patch_store_dir,
+        f"{from_commit_sha}-{process_title(filename)}.patch",
     )
 
     for diff_ in whatthepatch.parse_patch(
@@ -82,7 +85,9 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
     sha_list.reverse()
     for sha in sha_list:
         patch_path = os.path.join(
-            BASE_DIR, PATCH_STORE_DIR, f"{sha}-{process_title(filename)}.patch"
+            settings.base_dir,
+            settings.patch_store_dir,
+            f"{sha}-{process_title(filename)}.patch",
         )
 
         flag_line_list = []

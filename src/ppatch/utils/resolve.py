@@ -1,4 +1,4 @@
-from ppatch.app import MAX_DIFF_LINES
+from ppatch.config import settings
 from ppatch.model import ApplyResult, Change, Hunk, Line
 from ppatch.utils.common import find_list_positions
 
@@ -55,8 +55,8 @@ def apply_change(
         # 注意把后置上下文反转回来
         hunk_post = list(reversed(hunk_post))
 
-        assert len(hunk_context) <= MAX_DIFF_LINES
-        assert len(hunk_post) <= MAX_DIFF_LINES
+        assert len(hunk_context) <= settings.max_diff_lines
+        assert len(hunk_post) <= settings.max_diff_lines
 
         # 最后获取中间代码
         for change in hunk_changes:

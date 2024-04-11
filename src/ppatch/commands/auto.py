@@ -4,9 +4,10 @@ import subprocess
 
 import typer
 
-from ppatch.app import BASE_DIR, PATCH_STORE_DIR, app
+from ppatch.app import app
 from ppatch.commands.get import getpatches
 from ppatch.commands.trace import trace
+from ppatch.config import settings
 from ppatch.utils.common import process_title
 
 
@@ -69,7 +70,9 @@ def auto(filename: str):
         for sha in sha_list:
             with open(
                 os.path.join(
-                    BASE_DIR, PATCH_STORE_DIR, f"{sha}-{process_title(file_name)}.patch"
+                    settings.base_dir,
+                    settings.patch_store_dir,
+                    f"{sha}-{process_title(file_name)}.patch",
                 ),
                 mode="r",
                 encoding="utf-8",

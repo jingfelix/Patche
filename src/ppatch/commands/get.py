@@ -4,7 +4,8 @@ import subprocess
 
 import typer
 
-from ppatch.app import BASE_DIR, PATCH_STORE_DIR, app
+from ppatch.app import app
+from ppatch.config import settings
 from ppatch.utils.common import process_title
 
 
@@ -44,7 +45,9 @@ def getpatches(filename: str, expression: str = None, save: bool = True) -> list
             typer.echo(f"Patch {sha} found with expression {expression}")
 
         patch_path = os.path.join(
-            BASE_DIR, PATCH_STORE_DIR, f"{sha}-{process_title(filename)}.patch"
+            settings.base_dir,
+            settings.patch_store_dir,
+            f"{sha}-{process_title(filename)}.patch",
         )
 
         if save:
