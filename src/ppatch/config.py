@@ -6,10 +6,15 @@ from pydantic_settings import BaseSettings
 
 @lru_cache()
 def get_settings():
-    if not os.path.exists(Settings.Config.env_file):
-        open(Settings.Config.env_file, "w").close()
+    _settings = Settings()
+    if not os.path.exists(_settings.Config.env_file):
+        open(_settings.Config.env_file, "w").close()
 
-    return Settings()
+    patch_store_path = os.path.join(_settings.base_dir, _settings.patch_store_dir)
+    if not os.path.exists(patch_store_path):
+        os.makedirs(patch_store_path)
+
+    return _settings
 
 
 class Settings(BaseSettings):
