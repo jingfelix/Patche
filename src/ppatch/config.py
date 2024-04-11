@@ -1,3 +1,4 @@
+import importlib.resources as pkg_resources
 import os
 from functools import lru_cache
 
@@ -18,7 +19,7 @@ def get_settings():
 
 
 class Settings(BaseSettings):
-    base_dir: str = "/home/laboratory/workspace/exps/ppatch"
+    base_dir: str = str(pkg_resources.files("ppatch"))
     patch_store_dir: str = "_patches"
     max_diff_lines: int = 3
 
