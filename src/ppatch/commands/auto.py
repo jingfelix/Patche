@@ -32,6 +32,13 @@ def auto(filename: str):
         else:
             output_parts[-1] += line + "\n"
 
+    # 防呆设计
+    # To do 添加 - n 交互
+    output_parts = [part for part in output_parts if "Ignore -R" not in part]
+    if len(output_parts) == 0:
+        typer.echo("Unreversed patch detected!")
+        raise typer.Exit()
+
     output_parts = [part for part in output_parts if "FAILED" in part]
     if len(output_parts) == 0:
         typer.echo("No failed patch")
