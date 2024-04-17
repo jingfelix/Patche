@@ -192,11 +192,7 @@ def apply_change(
                 flag_line_list.append(line)
                 conflict_hunk_num_list.append(line.hunk)
 
-        new_line_list.append(
-            Line(
-                index=index, content=line.content, changed=line.changed, flag=line.flag
-            )
-        )
+        new_line_list.append(Line(index=index, content=line.content, flag=line.flag))
 
     return ApplyResult(
         new_line_list=new_line_list,
