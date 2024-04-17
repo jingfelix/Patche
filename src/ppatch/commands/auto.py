@@ -8,7 +8,10 @@ from ppatch.app import app
 from ppatch.commands.get import getpatches
 from ppatch.commands.trace import trace
 from ppatch.config import settings
-from ppatch.utils.common import process_title
+from ppatch.model import Diff, File
+from ppatch.utils.common import process_title, unpack
+from ppatch.utils.parse import parse_patch
+from ppatch.utils.resolve import apply_change
 
 
 @app.command()
@@ -18,54 +21,31 @@ def auto(filename: str):
         typer.echo(f"Warning: {filename} not found!")
         return
 
-    # "patch -R -p1 -F 3 -i {filename}"
-    # TODO: 令 apply patch 支持 -R -F 参数，将此处切换为自行实现的版本
-    output: str = subprocess.run(
-        ["patch", "-R", "-p1", "-F", "3", "-i", filename], capture_output=True
-    ).stdout.decode("utf-8", errors="ignore")
-
-    # 首先按照 patching file，将输出分割为几块
-    output_parts: list[str] = []
-    for line in output.splitlines():
-        if line.startswith("patching file "):
-            output_parts.append(line + "\n")
-        else:
-            output_parts[-1] += line + "\n"
-
-    # 防呆设计
-    # To do 添加 - n 交互
-    output_parts = [part for part in output_parts if "Ignore -R" not in part]
-    if len(output_parts) == 0:
-        typer.echo("Unreversed patch detected!")
-        raise typer.Exit()
-
-    output_parts = [part for part in output_parts if "FAILED" in part]
-    if len(output_parts) == 0:
-        typer.echo("No failed patch")
-        return
-
-    # 确定每个 Part 里，有哪些文件，第几个 hunk 失败了
-    fail_file_list: dict[str, list[int]] = {}
-    for part in output_parts:
-        file_name = part.splitlines()[0].split(" ")[-1]
-
-        fail_hunk_list = []
-        for line in part.splitlines():
-            # 使用正则表达式匹配 hunk
-            # Hunk #1 FAILED at 1.
-            match = re.search(r"Hunk #(\d+) FAILED at (\d+).", line)
-            if match:
-                fail_hunk_list.append(int(match.group(1)))
-
-        fail_file_list[file_name] = fail_hunk_list
-
     content = ""
     with open(filename, mode="r", encoding="utf-8") as (f):
         content = f.read()
 
-    from ppatch.utils.parse import parse_patch
+    parser = parse_patch(content)
+    fail_file_list: dict[str, list[int]] = {}
+    raw_diffes = parser.diff  # TODO: patchobj 应该换成 Pydantic Model，然后注意换掉 unpack() 的调用
+    for diff in raw_diffes:
+        diff = Diff(**unpack(diff))
+        target_file = diff.header.new_path  # 这里注意是 new_path 还是 old_path
+        origin_file = File(file_path=target_file)
 
-    subject = parse_patch(content).subject
+        apply_result = apply_change(diff.changes, origin_file.line_list, reverse=True)
+
+        if len(apply_result.failed_hunk_list) != 0:
+            typer.echo(f"Failed hunk in {target_file}")
+            fail_file_list[target_file] = [
+                hunk.index for hunk in apply_result.failed_hunk_list
+            ]
+
+    if len(fail_file_list) == 0:
+        typer.echo("No failed patch")
+        return
+
+    subject = parser.subject
     for file_name, hunk_list in fail_file_list.items():
         typer.echo(
             f"{len(hunk_list)} hunk(s) failed in {file_name} with subject {subject}"

@@ -17,9 +17,6 @@ def apply_change(
         for change in changes:
             change.old, change.new = change.new, change.old
 
-    # 这里有个巨大的问题：diff 信息中的行号与实际行号不一致
-    # 一种修复方式：搜索 diff 每个 hunk 的上下文行，然后修改标记
-
     # 首先统计 Hunk 数
     hunk_indexes = []
     for change in changes:

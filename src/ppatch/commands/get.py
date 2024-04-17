@@ -16,7 +16,7 @@ def getpatches(filename: str, expression: str = None, save: bool = True) -> list
     """
     if not os.path.exists(filename):
         typer.echo(f"Warning: {filename} not found!")
-        return
+        return []
 
     typer.echo(f"Get patches of {filename}")
 
