@@ -45,7 +45,7 @@ def process_title(filename: str):
     return "".join([letter for letter in filename if letter.isalnum()])
 
 
-def find_list_positions(main_list: list, sublist: list) -> list[int]:
+def find_list_positions(main_list: list[str], sublist: list[str]) -> list[int]:
     sublist_length = len(sublist)
     positions = []
 

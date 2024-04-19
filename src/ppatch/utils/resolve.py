@@ -1,3 +1,5 @@
+import typer
+
 from ppatch.config import settings
 from ppatch.model import ApplyResult, Change, Hunk, Line
 from ppatch.utils.common import find_list_positions
@@ -9,8 +11,12 @@ def apply_change(
     reverse: bool = False,
     flag: bool = False,
     flag_hunk: int = -1,
+    fuzz: int = 0,
 ) -> ApplyResult:
     """Apply a diff to a target string."""
+
+    if fuzz > settings.max_diff_lines or fuzz < 0:
+        raise Exception(f"fuzz value should be less than {settings.max_diff_lines}")
 
     # 如果反向，则交换所有的 old 和 new
     if reverse:
@@ -49,9 +55,6 @@ def apply_change(
             else:
                 break
 
-        # 注意把后置上下文反转回来
-        hunk_post = list(reversed(hunk_post))
-
         assert len(hunk_context) <= settings.max_diff_lines
         assert len(hunk_post) <= settings.max_diff_lines
 
@@ -59,6 +62,12 @@ def apply_change(
         for change in hunk_changes:
             if change not in hunk_context and change not in hunk_post:
                 hunk_middle.append(change)
+
+        hunk_context = hunk_context[0 : 3 - fuzz]
+        hunk_post = hunk_post[0 : 3 - fuzz]
+
+        # 注意把后置上下文反转回来
+        hunk_post = list(reversed(hunk_post))
 
         hunk_list.append(
             Hunk(
@@ -73,33 +82,31 @@ def apply_change(
     # 然后对每个hunk进行处理，添加偏移
     changes: list[Change] = []
     for hunk in hunk_list:
+        changes_to_search = hunk.context + hunk.middle + hunk.post
+        pos_list = find_list_positions(
+            [line.content for line in target],
+            [change.line for change in changes_to_search if change.old is not None],
+        )
 
-        def cal_offsets(target: list[Line], changes: list[Change]) -> list[int]:
-            pos_list = find_list_positions(
-                [line.content for line in target],
-                [change.line for change in changes],
-            )
-            if len(pos_list) == 0:
-                return []  # 这样使得下面计算交集时一定为空
-                # raise Exception(f"context lines do not exist in source")
+        # 初始位置是 context 的第一个
+        # 注意，前几个有可能是空
+        pos_origin = None
+        for change in changes_to_search:
+            if change.old is not None:
+                pos_origin = change.old
+                break
 
-            offset_list = []
-            if len(changes) == 0:
-                offset_list = pos_list
-            else:
-                for position in pos_list:
-                    offset = position + 1 - changes[0].old
-                    offset_list.append(offset)
+        if pos_origin is None:
+            failed_hunk_list.append(hunk)
+            # hunk_list.remove(hunk)
+            continue
 
-            return offset_list
+        offset_list = [pos + 1 - pos_origin for pos in pos_list]  # 确认这里是否需要 1？
 
-        offset_context = cal_offsets(target, hunk.context)
-        offset_post = cal_offsets(target, hunk.post)
-
-        offset_list = list(set(offset_context) & set(offset_post))
         if len(offset_list) == 0:
             failed_hunk_list.append(hunk)
-            hunk_list.remove(hunk)
+            typer.echo(f"Apply failed with hunk {hunk.index}")
+            # hunk_list.remove(hunk)
             continue
             # raise Exception("offsets do not intersect")
 

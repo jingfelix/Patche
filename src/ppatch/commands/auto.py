@@ -1,6 +1,4 @@
 import os
-import re
-import subprocess
 
 import typer
 
@@ -33,7 +31,9 @@ def auto(filename: str):
         target_file = diff.header.new_path  # 这里注意是 new_path 还是 old_path
         origin_file = File(file_path=target_file)
 
-        apply_result = apply_change(diff.changes, origin_file.line_list, reverse=True)
+        apply_result = apply_change(
+            diff.changes, origin_file.line_list, reverse=True, fuzz=3
+        )
 
         if len(apply_result.failed_hunk_list) != 0:
             typer.echo(f"Failed hunk in {target_file}")
