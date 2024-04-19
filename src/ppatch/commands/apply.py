@@ -15,6 +15,7 @@ def apply(
     filename: str,
     patch_path: str,
     reverse: Annotated[bool, typer.Option("-R", "--reverse")] = False,
+    fuzz: Annotated[int, typer.Option("-F", "--fuzz")] = 0,
 ):
     """
     Apply a patch to a file.
@@ -39,7 +40,7 @@ def apply(
             diff = Diff(**unpack(diff_))
             if diff.header.old_path == filename or diff.header.new_path == filename:
                 apply_result = apply_change(
-                    diff.changes, new_line_list, reverse=reverse
+                    diff.changes, new_line_list, reverse=reverse, fuzz=fuzz
                 )
                 # TODO: 检查失败数
                 new_line_list = apply_result.new_line_list
