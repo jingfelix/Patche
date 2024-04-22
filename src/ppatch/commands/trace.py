@@ -6,13 +6,15 @@ import whatthepatch
 
 from ppatch.app import app
 from ppatch.config import settings
-from ppatch.model import Diff, File, Line
+from ppatch.model import ApplyResult, Diff, File, Line
 from ppatch.utils.common import process_title, unpack
 from ppatch.utils.resolve import apply_change
 
 
 @app.command()
-def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
+def trace(filename: str, from_commit: str = "", flag_hunk_list: list[int] = None):
+    flag_hunk_list = [] if flag_hunk_list is None else flag_hunk_list
+
     if not os.path.exists(filename):
         typer.echo(f"Warning: {filename} not found!")
         return
@@ -68,7 +70,10 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
         if diff.header.old_path == filename or diff.header.new_path == filename:
             try:
                 apply_result = apply_change(
-                    diff.changes, origin_file.line_list, flag=True, flag_hunk=flag_hunk
+                    diff.changes,
+                    origin_file.line_list,
+                    flag=True,
+                    flag_hunk_list=flag_hunk_list,
                 )
                 # TODO: 检查失败数
                 new_line_list = apply_result.new_line_list
@@ -79,7 +84,7 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
         else:
             typer.echo(f"Do not match with {filename}, skip")
 
-    confict_list: dict[str, list[Line]] = {}
+    confict_list: dict[str, ApplyResult] = {}
 
     # 注意这里需要反向
     sha_list.reverse()
@@ -90,7 +95,7 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
             f"{sha}-{process_title(filename)}.patch",
         )
 
-        flag_line_list = []
+        apply_result: ApplyResult = ApplyResult()
         with open(patch_path, mode="r", encoding="utf-8") as (f):
             diffes = whatthepatch.parse_patch(f.read())
 
@@ -98,12 +103,10 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
                 diff = Diff(**unpack(diff_))
                 if diff.header.old_path == filename or diff.header.new_path == filename:
                     try:
-                        apply_result = apply_change(diff.changes, new_line_list)
-                        # TODO: 检查失败数
-                        new_line_list, flag_line_list = (
-                            apply_result.new_line_list,
-                            apply_result.flag_line_list,
+                        apply_result = apply_change(
+                            diff.changes, new_line_list, trace=True, flag=True
                         )
+                        new_line_list = apply_result.new_line_list
 
                         typer.echo(
                             f"Apply patch {sha} to {filename}: {len(new_line_list)}"
@@ -112,24 +115,14 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
                         typer.echo(f"Failed to apply patch {sha}")
                         typer.echo(f"Error: {e}")
 
-                        with open(
-                            filename + f".{sha}", mode="w+", encoding="utf-8"
-                        ) as (f):
-                            for line in new_line_list:
-                                if line.status:
-                                    f.write(line.content + "\n")
-
                         return
                 else:
                     typer.echo(f"Do not match with {filename}, skip")
 
-        assert isinstance(flag_line_list, list)
-
-        if len(flag_line_list) > 0:
-            confict_list[sha] = flag_line_list
+        if len(apply_result.conflict_hunk_num_list) > 0:
+            confict_list[sha] = apply_result
             typer.echo(f"Conflict found in {sha}")
-            for line in flag_line_list:
-                typer.echo(f"{line.index + 1}: {line.content}")
+            typer.echo(f"Conflict hunk list: {apply_result.conflict_hunk_num_list}")
 
     # 写入文件
     with open(filename, mode="w+", encoding="utf-8") as (f):
@@ -143,6 +136,5 @@ def trace(filename: str, from_commit: str = "", flag_hunk: int = -1):
                 f.write(f"{line.index + 1}: {line.content} {line.flag}\n")
 
     typer.echo(f"Conflict count: {len(confict_list)}")
-    typer.echo(f"Conflict list: {confict_list}")
 
     return confict_list

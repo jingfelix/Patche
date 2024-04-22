@@ -10,10 +10,13 @@ def apply_change(
     target: list[Line],
     reverse: bool = False,
     flag: bool = False,
-    flag_hunk: int = -1,
+    trace: bool = False,
+    flag_hunk_list: list[int] = None,
     fuzz: int = 0,
 ) -> ApplyResult:
     """Apply a diff to a target string."""
+
+    flag_hunk_list = [] if flag_hunk_list is None else flag_hunk_list
 
     if fuzz > settings.max_diff_lines or fuzz < 0:
         raise Exception(f"fuzz value should be less than {settings.max_diff_lines}")
@@ -96,8 +99,11 @@ def apply_change(
                 pos_origin = change.old
                 break
 
+        # TODO: 这里不太对，要想一下怎么处理，不应该是加入 failed hunk list
+        # 仅在 -F 3 且只有添加行 的情况下出现
+        # 也可以看一下这样的情况有多少
         if pos_origin is None:
-            failed_hunk_list.append(hunk)
+            # failed_hunk_list.append(hunk)
             # hunk_list.remove(hunk)
             continue
 
@@ -138,7 +144,6 @@ def apply_change(
                     f'context line {change.old}, "{change.line}" does not match "{target[change.old - 1]}"'
                 )
 
-    flag_line_list = []
     add_count = 0
     del_count = 0
 
@@ -152,9 +157,7 @@ def apply_change(
                     content=change.line,
                     changed=True,
                     status=True,
-                    flag=True
-                    if flag and (change.hunk == flag_hunk or flag_hunk == -1)
-                    else False,
+                    flag=True if change.hunk in flag_hunk_list and flag else False,
                     hunk=change.hunk,
                 ),
             )
@@ -163,44 +166,59 @@ def apply_change(
         elif change.new is None and change.old is not None:
             index = change.old - 1 - del_count + add_count
 
-            # 如果被修改行有标记，则将其添加进标记列表
+            # 如果被修改行有标记，则标记将其删除的 hunk
             if target[index].flag:
-                flag_line_list.append(target[index])
+                conflict_hunk_num_list.append(change.hunk)
 
             del target[index]
             del_count += 1
-
-            conflict_hunk_num_list.append(change.hunk)
 
         else:
             # 对其他行也要标记 flag
             index = change.old - 1 - del_count + add_count
             assert index == change.new - 1
             target[index].flag = (
-                True
-                if flag and (change.hunk == flag_hunk or flag_hunk == -1)
-                else target[index].flag
-            )
+                True if flag and change.hunk in flag_hunk_list else target[index].flag
+            )  # 加点注释解释一下 # TODO: 确认这个条件是否是正确的
 
-    new_line_list = []
+    new_line_list: list[Line] = []
     for index, line in enumerate(target):
         # 判断是否在 Flag 行附近进行了修改
         # 如果该行为 changed，且前后行为flag，则也加入标记列表
         if line.changed and not line.flag:
-            if index > 0 and target[index - 1].flag:
-                line.flag = True
-            if index < len(target) - 1 and target[index + 1].flag:
+            before_flag = (
+                index > 0 and target[index - 1].flag and not target[index - 1].changed
+            )
+            after_flag = (
+                index < len(target) - 1
+                and target[index + 1].flag
+                and not target[index + 1].changed
+            )
+
+            if before_flag or after_flag:
                 line.flag = True
 
             if line.flag:
-                flag_line_list.append(line)
                 conflict_hunk_num_list.append(line.hunk)
 
-        new_line_list.append(Line(index=index, content=line.content, flag=line.flag))
+            # 当 trace 为 True 时，将所有 conflict hunk 的行都标记为冲突
+            if trace and line.hunk in conflict_hunk_num_list:
+                line.flag = True
+
+        new_line_list.append(
+            Line(index=index, content=line.content, flag=line.flag)
+        )  # 注意洗掉 hunk changed
+
+    failed_hunk_list.extend(
+        [
+            hunk
+            for hunk in hunk_list
+            if hunk.index in conflict_hunk_num_list and hunk not in failed_hunk_list
+        ]
+    )
 
     return ApplyResult(
         new_line_list=new_line_list,
-        flag_line_list=flag_line_list,
         conflict_hunk_num_list=conflict_hunk_num_list,
         failed_hunk_list=failed_hunk_list,
     )

@@ -60,6 +60,5 @@ class Diff(BaseModel):
 
 class ApplyResult(BaseModel):
     new_line_list: list[Line] = []
-    flag_line_list: list[Line] = []
     conflict_hunk_num_list: list[int] = []
     failed_hunk_list: list[Hunk] = []

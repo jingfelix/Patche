@@ -76,6 +76,9 @@ def auto(filename: str):
         typer.echo(f"Found correspond patch {sha_for_sure} to {file_name}")
         typer.echo(f"Hunk list: {hunk_list}")
 
-        for hunk in hunk_list:
-            conflict_list = trace(file_name, from_commit=sha_for_sure, flag_hunk=hunk)
-            typer.echo(f"Conflict list: {conflict_list}")
+        conflict_list = trace(
+            file_name, from_commit=sha_for_sure, flag_hunk_list=hunk_list
+        )
+
+        for sha, apply_result in conflict_list.items():
+            typer.echo(f"Conflict hunk in {sha}: {apply_result.conflict_hunk_num_list}")
