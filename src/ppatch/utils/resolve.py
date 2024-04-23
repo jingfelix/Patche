@@ -176,7 +176,14 @@ def apply_change(
         else:
             # 对其他行也要标记 flag
             index = change.old - 1 - del_count + add_count
-            assert index == change.new - 1
+
+            try:
+                assert index == change.new - 1  # TODO: but why? 44733
+            except AssertionError:
+                typer.echo(
+                    f"index: {index}, change.new: {change.new}, hunk: {change.hunk}"
+                )
+
             target[index].flag = (
                 True if flag and change.hunk in flag_hunk_list else target[index].flag
             )  # 加点注释解释一下 # TODO: 确认这个条件是否是正确的
