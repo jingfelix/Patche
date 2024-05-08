@@ -22,7 +22,11 @@ def apply_change(
         raise Exception(f"fuzz value should be less than {settings.max_diff_lines}")
 
     # 如果反向，则交换所有的 old 和 new
+    # reverse 不支持 flag trace
     if reverse:
+        if flag:
+            raise Exception("flag is not supported with reverse")
+
         for change in changes:
             change.old, change.new = change.new, change.old
 
@@ -103,8 +107,8 @@ def apply_change(
         # 仅在 -F 3 且只有添加行 的情况下出现
         # 也可以看一下这样的情况有多少
         if pos_origin is None:
-            # failed_hunk_list.append(hunk)
-            # hunk_list.remove(hunk)
+            failed_hunk_list.append(hunk)
+            hunk_list.remove(hunk)
             continue
 
         offset_list = [pos + 1 - pos_origin for pos in pos_list]  # 确认这里是否需要 1？
@@ -122,15 +126,57 @@ def apply_change(
             if min_offset is None or abs(offset) < abs(min_offset):
                 min_offset = offset
 
-        for change in hunk.middle:
-            changes.append(
-                Change(
-                    hunk=change.hunk,
-                    old=change.old + min_offset if change.old is not None else None,
-                    new=change.new + min_offset if change.new is not None else None,
-                    line=change.line,
-                )
+        # 如果 reverse 为 True，则直接替换，不进行 flag 追踪
+        if reverse:
+            # 直接按照 pos 进行替换
+            # 选择 offset 最小的 pos
+            pos_new = pos_origin + min_offset - 1
+
+            old_lines = [
+                change.line
+                for change in hunk.context + hunk.middle + hunk.post
+                if change.old is not None
+            ]
+            new_lines = [
+                change.line
+                for change in hunk.context + hunk.middle + hunk.post
+                if change.new is not None
+            ]
+
+            # 检查 pos_new 位置的行是否和 old_lines 一致
+            for i in range(len(old_lines)):
+                if target[pos_new + i].content != old_lines[i]:
+                    raise Exception(
+                        f'line {pos_new + i}, "{target[pos_new + i].content}" does not match "{new_lines[i]}"'
+                    )
+
+            # 以切片的方式进行替换
+            target = (
+                target[:pos_new]
+                + [
+                    Line(index=pos_new + i, content=new_lines[i])
+                    for i in range(len(new_lines))
+                ]
+                + target[pos_new + len(old_lines) :]
             )
+
+        else:
+            for change in hunk.middle:
+                changes.append(
+                    Change(
+                        hunk=change.hunk,
+                        old=change.old + min_offset if change.old is not None else None,
+                        new=change.new + min_offset if change.new is not None else None,
+                        line=change.line,
+                    )
+                )
+
+    if reverse:
+        return ApplyResult(
+            new_line_list=target,
+            conflict_hunk_num_list=[],
+            failed_hunk_list=failed_hunk_list,
+        )
 
     # 注意这里的 changes 应该使用从 hunk_list 中拼接出来的（也就是修改过行号的）
     for change in changes:
@@ -192,7 +238,7 @@ def apply_change(
     for index, line in enumerate(target):
         # 判断是否在 Flag 行附近进行了修改
         # 如果该行为 changed，且前后行为flag，则也加入标记列表
-        if line.changed and not line.flag:
+        if flag and line.changed and not line.flag:
             before_flag = (
                 index > 0 and target[index - 1].flag and not target[index - 1].changed
             )
