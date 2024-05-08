@@ -50,6 +50,7 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
         return
 
     subject = parser.subject
+    diffes: list = []
     for file_name, hunk_list in fail_file_list.items():
         typer.echo(
             f"{len(hunk_list)} hunk(s) failed in {file_name} with subject {subject}"
@@ -119,19 +120,20 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
 
         import difflib
 
-        diffes = difflib.unified_diff(
+        diffes_ = difflib.unified_diff(
             origin_text.splitlines(),
             patched_text.splitlines(),
             fromfile="a/" + file_name,
             tofile="b/" + file_name,
         )
 
-        with open(
-            os.path.join(output, f"{process_title(file_name)}-auto.patch"),
-            mode="w",
-            encoding="utf-8",
-        ) as (f):
-            for line in diffes:
-                f.write(line + "\n" if not line.endswith("\n") else line)
+        for line in diffes_:
+            diffes.append(line + "\n" if not line.endswith("\n") else line)
 
-        typer.echo(f"Patch file generated: {process_title(file_name)}-auto.patch")
+    with open(
+        os.path.join(output, "auto.patch"),
+        mode="w",
+        encoding="utf-8",
+    ) as (f):
+        f.write("".join(diffes))
+        typer.echo("Patch file generated: auto.patch")
