@@ -19,9 +19,8 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
         typer.echo(f"Warning: {filename} not found!")
         return
 
-    if not os.path.isdir(output):
-        typer.echo(f"Warning: dir {output} not found!")
-        return
+    if os.path.isdir(output):
+        output = os.path.join(output, "auto.patch")
 
     content = ""
     with open(filename, mode="r", encoding="utf-8") as (f):
@@ -131,7 +130,7 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
             diffes.append(line + "\n" if not line.endswith("\n") else line)
 
     with open(
-        os.path.join(output, "auto.patch"),
+        os.path.join(output),
         mode="w",
         encoding="utf-8",
     ) as (f):
