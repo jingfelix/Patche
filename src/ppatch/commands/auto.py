@@ -6,7 +6,7 @@ from ppatch.app import app
 from ppatch.commands.get import getpatches
 from ppatch.commands.trace import trace
 from ppatch.config import settings
-from ppatch.model import Diff, File
+from ppatch.model import CommandResult, CommandType, Diff, File
 from ppatch.utils.common import process_title, unpack
 from ppatch.utils.parse import parse_patch
 from ppatch.utils.resolve import apply_change
@@ -17,7 +17,10 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
     """Automatic do ANYTHING"""
     if not os.path.exists(filename):
         typer.echo(f"Warning: {filename} not found!")
-        return
+
+        return CommandResult(
+            type=CommandType.AUTO,
+        )
 
     if os.path.isdir(output):
         output = os.path.join(output, "auto.patch")
@@ -34,6 +37,7 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
         target_file = diff.header.new_path  # 这里注意是 new_path 还是 old_path
         origin_file = File(file_path=target_file)
 
+        # 执行 Reverse，确定失败的 Hunk
         apply_result = apply_change(
             diff.changes, origin_file.line_list, reverse=True, fuzz=3
         )
@@ -46,7 +50,10 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
 
     if len(fail_file_list) == 0:
         typer.echo("No failed patch")
-        return
+
+        return CommandResult(
+            type=CommandType.AUTO,
+        )
 
     subject = parser.subject
     diffes: list = []
@@ -75,7 +82,10 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
 
         if sha_for_sure is None:
             typer.echo(f"Error: No patch found for {file_name}")
-            return
+
+            return CommandResult(
+                type=CommandType.AUTO,
+            )
 
         typer.echo(f"Found correspond patch {sha_for_sure} to {file_name}")
         typer.echo(f"Hunk list: {hunk_list}")
@@ -135,4 +145,8 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
         encoding="utf-8",
     ) as (f):
         f.write("".join(diffes))
-        typer.echo("Patch file generated: auto.patch")
+        typer.echo(f"Patch file generated: {output}")
+
+    return CommandResult(
+        type=CommandType.AUTO,
+    )

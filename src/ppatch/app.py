@@ -1,6 +1,8 @@
 import typer
 
-app = typer.Typer()
+from ppatch.utils.common import post_executed
+
+app = typer.Typer(result_callback=post_executed)
 
 from ppatch.commands.apply import apply
 from ppatch.commands.auto import auto

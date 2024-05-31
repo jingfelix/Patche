@@ -1,5 +1,9 @@
 import subprocess
 
+import typer
+
+from ppatch.model import CommandResult, CommandType
+
 # import typer
 # import whatthepatch
 
@@ -78,3 +82,15 @@ def unpack(obj):
         return tuple(unpack(value) for value in obj)
     else:
         return obj
+
+
+def post_executed(executed_command_result: CommandResult) -> None:
+    """Executed command result callback function"""
+
+    typer.echo(f"Executed {executed_command_result.type}")
+
+    match executed_command_result.type:
+        case CommandType.AUTO:
+            clean_repo()
+        case _:
+            pass

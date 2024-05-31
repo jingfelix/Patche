@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
@@ -62,3 +63,18 @@ class ApplyResult(BaseModel):
     new_line_list: list[Line] = []
     conflict_hunk_num_list: list[int] = []
     failed_hunk_list: list[Hunk] = []
+
+
+class CommandType(Enum):
+    APPLY = "apply"
+    AUTO = "auto"
+    GET = "get"
+    HELP = "help"
+    SHOW = "show"
+    TRACE = "trace"
+    UNKNOWN = "unknown"
+
+
+class CommandResult(BaseModel):
+    type: CommandType
+    content: dict | list | str | None = None
