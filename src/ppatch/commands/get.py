@@ -1,15 +1,10 @@
-import logging
 import os
 import re
 import subprocess
 
-import typer
-
-from ppatch.app import app
+from ppatch.app import app, logger
 from ppatch.config import settings
 from ppatch.utils.common import process_title
-
-logger = logging.getLogger()
 
 
 @app.command("get")

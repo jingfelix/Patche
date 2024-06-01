@@ -1,9 +1,8 @@
-import logging
 import os
 
 import typer
 
-from ppatch.app import app
+from ppatch.app import app, logger
 from ppatch.commands.get import getpatches
 from ppatch.commands.trace import trace
 from ppatch.config import settings
@@ -11,8 +10,6 @@ from ppatch.model import CommandResult, CommandType, Diff, File
 from ppatch.utils.common import process_title, unpack
 from ppatch.utils.parse import parse_patch
 from ppatch.utils.resolve import apply_change
-
-logger = logging.getLogger()
 
 
 @app.command()

@@ -1,15 +1,10 @@
-import logging
 import os
-
-import typer
-
-from ppatch.app import app
-from ppatch.utils.parse import parse_patch
-
-logger = logging.getLogger()
 
 from rich.console import Console
 from rich.table import Table
+
+from ppatch.app import app, logger
+from ppatch.utils.parse import parse_patch
 
 
 @app.command()

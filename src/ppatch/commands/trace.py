@@ -1,17 +1,13 @@
-import logging
 import os
 import subprocess
 
-import typer
 import whatthepatch
 
-from ppatch.app import app
+from ppatch.app import app, logger
 from ppatch.config import settings
-from ppatch.model import ApplyResult, Diff, File, Line
+from ppatch.model import ApplyResult, Diff, File
 from ppatch.utils.common import process_title, unpack
 from ppatch.utils.resolve import apply_change
-
-logger = logging.getLogger()
 
 
 @app.command()
@@ -124,8 +120,8 @@ def trace(filename: str, from_commit: str = "", flag_hunk_list: list[int] = None
 
         if len(apply_result.conflict_hunk_num_list) > 0:
             confict_list[sha] = apply_result
-            logging.info(f"Conflict found in {sha}")
-            logging.debug(f"Conflict hunk list: {apply_result.conflict_hunk_num_list}")
+            logger.info(f"Conflict found in {sha}")
+            logger.debug(f"Conflict hunk list: {apply_result.conflict_hunk_num_list}")
 
     # 写入文件
     with open(filename, mode="w+", encoding="utf-8") as (f):

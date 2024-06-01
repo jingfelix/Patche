@@ -4,6 +4,7 @@ import typer
 from rich.logging import RichHandler
 
 logging.basicConfig(level=logging.INFO, handlers=[RichHandler()], format="%(message)s")
+logger = logging.getLogger()
 
 from ppatch.utils.common import post_executed
 
@@ -16,7 +17,6 @@ def callback(verbose: bool = False):
     Entry for public options
     """
     if verbose:
-        logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
 
 

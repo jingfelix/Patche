@@ -1,11 +1,7 @@
-import logging
 import subprocess
 from typing import Any
 
-import typer
-
-logger = logging.getLogger()
-
+from ppatch.app import logger
 from ppatch.model import CommandResult, CommandType
 
 # import typer

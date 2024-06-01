@@ -1,16 +1,13 @@
-import logging
 import os
 from typing import Annotated
 
 import typer
 import whatthepatch
 
-from ppatch.app import app
+from ppatch.app import app, logger
 from ppatch.model import Diff, File
 from ppatch.utils.common import unpack
 from ppatch.utils.resolve import apply_change
-
-logger = logging.getLogger()
 
 
 @app.command()

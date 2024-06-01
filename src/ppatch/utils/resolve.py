@@ -1,12 +1,7 @@
-import logging
-
-import typer
-
+from ppatch.app import logger
 from ppatch.config import settings
 from ppatch.model import ApplyResult, Change, Hunk, Line
 from ppatch.utils.common import find_list_positions
-
-logger = logging.getLogger()
 
 
 def apply_change(
