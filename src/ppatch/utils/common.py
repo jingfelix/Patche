@@ -4,16 +4,17 @@ from typing import Any
 from ppatch.app import logger
 from ppatch.model import CommandResult, CommandType
 
-# import typer
-# import whatthepatch
-
-# from ppatch.model import Line
-# from .resolve import apply_change
-
 
 def clean_repo():
-    subprocess.run(["git", "clean", "-df"])
-    subprocess.run(["git", "reset", "--hard"])
+    output = subprocess.run(["git", "clean", "-df"], capture_output=True).stdout.decode(
+        "utf-8"
+    )
+    logger.debug(output)
+
+    output = subprocess.run(
+        ["git", "reset", "--hard"], capture_output=True
+    ).stdout.decode("utf-8")
+    logger.debug(output)
 
 
 def process_title(filename: str):
