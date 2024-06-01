@@ -24,3 +24,8 @@ ppatch = "ppatch.__init__:app"
 
 [tool.pdm]
 distribution = true
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "viztracer>=0.16.3",
+]

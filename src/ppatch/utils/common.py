@@ -1,6 +1,10 @@
+import logging
 import subprocess
+from typing import Any
 
 import typer
+
+logger = logging.getLogger()
 
 from ppatch.model import CommandResult, CommandType
 
@@ -14,32 +18,6 @@ from ppatch.model import CommandResult, CommandType
 def clean_repo():
     subprocess.run(["git", "clean", "-df"])
     subprocess.run(["git", "reset", "--hard"])
-
-
-# def _apply(
-#     patch_path: str,
-#     filename: str,
-#     new_line_list: list[Line],
-#     from_commit_sha: str,
-#     flag: bool = False,
-# ) -> tuple[list[Line], list[Line]]:
-#     for diff in whatthepatch.parse_patch(
-#         open(patch_path, mode="r", encoding="utf-8").read()
-#     ):
-#         if diff.header.old_path == filename or diff.header.new_path == filename:
-#             try:
-#                 new_line_list, flag_line_list = apply_change(
-#                     diff.changes, new_line_list, flag=flag
-#                 )
-#             except Exception as e:
-#                 typer.echo(f"Apply patch {from_commit_sha} failed")
-#                 typer.echo(f"Error: {e}")
-#                 return [], []
-
-#             return new_line_list, flag_line_list
-
-#         else:
-#             typer.echo(f"Do not match with {filename}, skip")
 
 
 def process_title(filename: str):
@@ -84,10 +62,12 @@ def unpack(obj):
         return obj
 
 
-def post_executed(executed_command_result: CommandResult) -> None:
+def post_executed(executed_command_result: CommandResult | Any, **kwargs) -> None:
     """Executed command result callback function"""
+    if type(executed_command_result) != CommandResult:
+        return
 
-    typer.echo(f"Executed {executed_command_result.type}")
+    logger.debug(f"Executed {executed_command_result.type}")
 
     match executed_command_result.type:
         case CommandType.AUTO:

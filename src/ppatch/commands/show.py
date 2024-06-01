@@ -1,9 +1,15 @@
+import logging
 import os
 
 import typer
 
 from ppatch.app import app
 from ppatch.utils.parse import parse_patch
+
+logger = logging.getLogger()
+
+from rich.console import Console
+from rich.table import Table
 
 
 @app.command()
@@ -12,7 +18,7 @@ def show(filename: str):
     Show detail of a patch file.
     """
     if not os.path.exists(filename):
-        typer.echo(f"Warning: {filename} not found!")
+        logger.error(f"Warning: {filename} not found!")
         return
 
     content = ""
@@ -21,13 +27,18 @@ def show(filename: str):
 
     patch = parse_patch(content)
 
-    typer.echo(f"Patch: {filename}")
-    typer.echo(f"Sha: {patch.sha}")
-    typer.echo(f"Author: {patch.author}")
-    typer.echo(f"Date: {(patch.date).strftime('%Y-%m-%d %H:%M:%S')}")
-    typer.echo(f"Subject: {patch.subject}")
+    table = Table(box=None)
+    table.add_column("Field", justify="left", style="cyan")
+    table.add_column("Value", justify="left", style="magenta")
+
+    table.add_row("Patch", filename)
+    table.add_row("Sha", patch.sha)
+    table.add_row("Author", patch.author)
+    table.add_row("Date", (patch.date).strftime("%Y-%m-%d %H:%M:%S"))
+    table.add_row("Subject", patch.subject)
 
     for diff in patch.diff:
-        typer.echo(f"Diff: {diff.header.old_path} -> {diff.header.new_path}")
-        # for i, change in enumerate(diff.changes):
-        #     typer.echo(f"{i+1}: {change.hunk}")
+        table.add_row("Diff", f"{diff.header.old_path} -> {diff.header.new_path}")
+
+    console = Console()
+    console.print(table)

@@ -19,6 +19,9 @@ By default, base_dir is the base directory where `ppatch` is installed.
 `ppatch` uses `pdm` as package manager. To install the dependencies in your workspace, run:
 
 ```bash
+pdm install --prod
+
+# If you want to trace ppatch execution
 pdm install
 ```
 

@@ -1,3 +1,4 @@
+import logging
 import os
 
 import typer
@@ -11,12 +12,14 @@ from ppatch.utils.common import process_title, unpack
 from ppatch.utils.parse import parse_patch
 from ppatch.utils.resolve import apply_change
 
+logger = logging.getLogger()
+
 
 @app.command()
-def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
+def auto(filename: str, output: str = typer.Option("../result/", "--output", "-o")):
     """Automatic do ANYTHING"""
     if not os.path.exists(filename):
-        typer.echo(f"Warning: {filename} not found!")
+        logger.warning(f"{filename} not found!")
 
         return CommandResult(
             type=CommandType.AUTO,
@@ -43,13 +46,13 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
         )
 
         if len(apply_result.failed_hunk_list) != 0:
-            typer.echo(f"Failed hunk in {target_file}")
+            logger.info(f"Failed hunk in {target_file}")
             fail_file_list[target_file] = [
                 hunk.index for hunk in apply_result.failed_hunk_list
             ]
 
     if len(fail_file_list) == 0:
-        typer.echo("No failed patch")
+        logger.info("No failed patch")
 
         return CommandResult(
             type=CommandType.AUTO,
@@ -58,7 +61,7 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
     subject = parser.subject
     diffes: list = []
     for file_name, hunk_list in fail_file_list.items():
-        typer.echo(
+        logger.info(
             f"{len(hunk_list)} hunk(s) failed in {file_name} with subject {subject}"
         )
 
@@ -81,14 +84,14 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
                     break
 
         if sha_for_sure is None:
-            typer.echo(f"Error: No patch found for {file_name}")
+            logger.error(f"No patch found for {file_name}")
 
             return CommandResult(
                 type=CommandType.AUTO,
             )
 
-        typer.echo(f"Found correspond patch {sha_for_sure} to {file_name}")
-        typer.echo(f"Hunk list: {hunk_list}")
+        logger.info(f"Found correspond patch {sha_for_sure} to {file_name}")
+        logger.info(f"Hunk list: {hunk_list}")
 
         conflict_list = trace(
             file_name, from_commit=sha_for_sure, flag_hunk_list=hunk_list
@@ -104,7 +107,7 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
                 apply_result.failed_hunk_list, key=lambda x: x.index
             )
 
-            typer.echo(
+            logger.info(
                 f"Conflict hunk in {sha}: {[hunk.index for hunk in apply_result.failed_hunk_list]}"
             )
 
@@ -117,7 +120,7 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
             try:
                 assert len(_apply_result.failed_hunk_list) == 0
             except AssertionError:
-                typer.echo(
+                logger.error(
                     f"AUTO: Failed hunk in {sha}; len: {len(_apply_result.failed_hunk_list)}"
                 )
 
@@ -145,7 +148,7 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
         encoding="utf-8",
     ) as (f):
         f.write("".join(diffes))
-        typer.echo(f"Patch file generated: {output}")
+        logger.info(f"Patch file generated: {output}")
 
     return CommandResult(
         type=CommandType.AUTO,

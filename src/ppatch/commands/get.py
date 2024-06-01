@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import subprocess
@@ -8,6 +9,8 @@ from ppatch.app import app
 from ppatch.config import settings
 from ppatch.utils.common import process_title
 
+logger = logging.getLogger()
+
 
 @app.command("get")
 def getpatches(filename: str, expression: str = None, save: bool = True) -> list[str]:
@@ -15,10 +18,10 @@ def getpatches(filename: str, expression: str = None, save: bool = True) -> list
     Get patches of a file.
     """
     if not os.path.exists(filename):
-        typer.echo(f"Warning: {filename} not found!")
+        logger.error(f"Warning: {filename} not found!")
         return []
 
-    typer.echo(f"Get patches of {filename}")
+    logger.info(f"Get patches of {filename}")
 
     output: str = subprocess.run(
         ["git", "log", "-p", "--", filename], capture_output=True
@@ -32,7 +35,7 @@ def getpatches(filename: str, expression: str = None, save: bool = True) -> list
         else:
             patches[-1] += line + "\n"
 
-    typer.echo(f"Get {len(patches)} patches for {filename}")
+    logger.info(f"Get {len(patches)} patches for {filename}")
 
     pattern = re.compile(expression) if expression is not None else None
 
@@ -42,7 +45,7 @@ def getpatches(filename: str, expression: str = None, save: bool = True) -> list
 
         if pattern is not None and pattern.search(patch) is not None:
             sha_list.append(sha)
-            typer.echo(f"Patch {sha} found with expression {expression}")
+            logger.info(f"Patch {sha} found with expression {expression}")
 
         patch_path = os.path.join(
             settings.base_dir,

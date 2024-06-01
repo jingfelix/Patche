@@ -1,8 +1,24 @@
+import logging
+
 import typer
+from rich.logging import RichHandler
+
+logging.basicConfig(level=logging.INFO, handlers=[RichHandler()], format="%(message)s")
 
 from ppatch.utils.common import post_executed
 
 app = typer.Typer(result_callback=post_executed)
+
+
+@app.callback()
+def callback(verbose: bool = False):
+    """
+    Entry for public options
+    """
+    if verbose:
+        logger = logging.getLogger()
+        logger.setLevel(logging.DEBUG)
+
 
 from ppatch.commands.apply import apply
 from ppatch.commands.auto import auto

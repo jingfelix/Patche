@@ -1,8 +1,12 @@
+import logging
+
 import typer
 
 from ppatch.config import settings
 from ppatch.model import ApplyResult, Change, Hunk, Line
 from ppatch.utils.common import find_list_positions
+
+logger = logging.getLogger()
 
 
 def apply_change(
@@ -115,7 +119,7 @@ def apply_change(
 
         if len(offset_list) == 0:
             failed_hunk_list.append(hunk)
-            typer.echo(f"Apply failed with hunk {hunk.index}")
+            logger.error(f"Apply failed with hunk {hunk.index}")
             # hunk_list.remove(hunk)
             continue
             # raise Exception("offsets do not intersect")
@@ -226,7 +230,7 @@ def apply_change(
             try:
                 assert index == change.new - 1  # TODO: but why? 44733
             except AssertionError:
-                typer.echo(
+                logger.error(
                     f"index: {index}, change.new: {change.new}, hunk: {change.hunk}"
                 )
 
