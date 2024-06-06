@@ -13,11 +13,17 @@ from ppatch.utils.resolve import apply_change
 
 
 @app.command()
-def auto(filename: str, output: str = typer.Option("../result/", "--output", "-o")):
+def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
     """Automatic do ANYTHING"""
     if not os.path.exists(filename):
-        logger.warning(f"{filename} not found!")
+        logger.error(f"{filename} not found!")
 
+        return CommandResult(
+            type=CommandType.AUTO,
+        )
+
+    if not os.path.exists(output) and not output.endswith(".patch"):
+        logger.error(f"output {output} not found!")
         return CommandResult(
             type=CommandType.AUTO,
         )
@@ -140,8 +146,8 @@ def auto(filename: str, output: str = typer.Option("../result/", "--output", "-o
             diffes.append(line + "\n" if not line.endswith("\n") else line)
 
     with open(
-        os.path.join(output),
-        mode="w",
+        output,
+        mode="w+",
         encoding="utf-8",
     ) as (f):
         f.write("".join(diffes))

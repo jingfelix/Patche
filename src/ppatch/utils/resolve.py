@@ -114,7 +114,7 @@ def apply_change(
 
         if len(offset_list) == 0:
             failed_hunk_list.append(hunk)
-            logger.error(f"Apply failed with hunk {hunk.index}")
+            logger.warning(f"Apply failed with hunk {hunk.index}")
             # hunk_list.remove(hunk)
             continue
             # raise Exception("offsets do not intersect")
