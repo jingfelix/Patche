@@ -41,6 +41,13 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
     for diff in raw_diffes:
         diff = Diff(**unpack(diff))
         target_file = diff.header.new_path  # 这里注意是 new_path 还是 old_path
+
+        if not os.path.exists(target_file):
+            logger.error(f"File {target_file} not found!")
+            return CommandResult(
+                type=CommandType.AUTO,
+            )
+
         origin_file = File(file_path=target_file)
 
         # 执行 Reverse，确定失败的 Hunk
@@ -150,7 +157,14 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
         mode="w+",
         encoding="utf-8",
     ) as (f):
-        f.write("".join(diffes))
+        patch_content = "".join(diffes)
+        if len(patch_content) == 0:
+            logger.error("No patch generated")
+            return CommandResult(
+                type=CommandType.AUTO,
+            )
+
+        f.write(patch_content)
         logger.info(f"Patch file generated: {output}")
 
     return CommandResult(

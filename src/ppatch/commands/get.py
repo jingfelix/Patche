@@ -53,4 +53,7 @@ def getpatches(filename: str, expression: str = None, save: bool = True) -> list
                 with open(patch_path, mode="w+", encoding="utf-8") as (f):
                     f.write(patch)
 
+    if pattern and len(sha_list) == 0:
+        logger.error(f"No patch found with expression {expression}")
+
     return sha_list
