@@ -38,7 +38,9 @@ def getpatches(filename: str, expression: str = None, save: bool = True) -> list
     for patch in patches:
         sha = patch.splitlines()[0].split(" ")[1]
 
-        if pattern is not None and pattern.search(patch) is not None:
+        if pattern is not None and (
+            pattern.search(patch) is not None or expression in patch
+        ):
             sha_list.append(sha)
             logger.info(f"Patch {sha} found with expression {expression}")
 

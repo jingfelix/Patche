@@ -89,7 +89,12 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
                 encoding="utf-8",
             ) as (f):
                 text = f.read()
-                if parse_patch(text).subject == subject:
+
+                # logger.debug(f"1st: {parse_patch(text).subject}")
+                # logger.debug(f"2nd: {subject}")
+
+                target_subject = parse_patch(text).subject
+                if target_subject in subject or subject in target_subject:
                     sha_for_sure = sha
                     break
 
