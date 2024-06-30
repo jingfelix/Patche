@@ -39,7 +39,6 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
     fail_file_list: dict[str, list[int]] = {}
     raw_diffes = parser.diff  # TODO: patchobj 应该换成 Pydantic Model，然后注意换掉 unpack() 的调用
     for diff in raw_diffes:
-        diff = Diff(**unpack(diff))
         target_file = diff.header.new_path  # 这里注意是 new_path 还是 old_path
 
         if not os.path.exists(target_file):

@@ -36,8 +36,7 @@ def apply(
     with open(patch_path, mode="r", encoding="utf-8") as (f):
         diffes = whatthepatch.parse_patch(f.read())
 
-        for diff_ in diffes:
-            diff = Diff(**unpack(diff_))
+        for diff in diffes:
             if diff.header.old_path == filename or diff.header.new_path == filename:
                 apply_result = apply_change(
                     diff.changes, new_line_list, reverse=reverse, fuzz=fuzz

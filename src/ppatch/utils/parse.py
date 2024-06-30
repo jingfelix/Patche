@@ -1,17 +1,14 @@
-import datetime
 import re
-from collections import namedtuple
 
 from whatthepatch import parse_patch as wtp_parse_patch
 
-patchobj = namedtuple(
-    "patchobj", ["sha", "author", "date", "subject", "message", "diff"]
-)
+from ppatch.model import Patch
+
 git_diffcmd_header = re.compile("^diff --git a/(.+) b/(.+)$")
 spliter_line = re.compile("^---$")
 
 
-def parse_patch(text: str) -> patchobj:
+def parse_patch(text: str) -> Patch:
     """
     Parse a patch file
     Diiference between this and whatthepatch.parse_patch is that this function also
@@ -33,13 +30,13 @@ def parse_patch(text: str) -> patchobj:
 
     git_message_lines: list[str] = []
     if idx == 0:
-        return patchobj(
+        return Patch(
             sha=None,
             author=None,
             date=None,
             subject=None,
             message=None,
-            diff=wtp_parse_patch(text),
+            diff=list(wtp_parse_patch(text)),
         )
     else:
         git_message_lines = lines[:idx]
@@ -62,12 +59,13 @@ def parse_patch(text: str) -> patchobj:
     if date_line.startswith("Date: "):
         date_str = date_line.split("Date: ")[1]
         # 解析 Thu, 7 Mar 2024 15:41:57 +0800 或 Tue Feb 2 16:07:37 2021 +0100
-        if "," in date_str:
-            date_fromat = "%a, %d %b %Y %H:%M:%S %z"
-        else:
-            date_fromat = "%a %b %d %H:%M:%S %Y %z"
+        # if "," in date_str:
+        #     date_fromat = "%a, %d %b %Y %H:%M:%S %z"
+        # else:
+        #     date_fromat = "%a %b %d %H:%M:%S %Y %z"
 
-        date = datetime.datetime.strptime(date_str.strip(), date_fromat)
+        # date = datetime.datetime.strptime(date_str.strip(), date_fromat)
+        date = date_str.strip()
     else:
         date = None
 
@@ -82,11 +80,11 @@ def parse_patch(text: str) -> patchobj:
                 subject = line
                 break
 
-    return patchobj(
+    return Patch(
         sha=sha.strip() if sha else None,
         author=author.strip() if author else None,
         date=date,
         subject=subject.strip() if subject else None,
         message=message,
-        diff=wtp_parse_patch(text),
+        diff=list(wtp_parse_patch(text)),
     )

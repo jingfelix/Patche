@@ -29,7 +29,7 @@ def show(filename: str):
     table.add_row("Patch", filename)
     table.add_row("Sha", patch.sha)
     table.add_row("Author", patch.author)
-    table.add_row("Date", (patch.date).strftime("%Y-%m-%d %H:%M:%S"))
+    table.add_row("Date", (patch.date))
     table.add_row("Subject", patch.subject)
 
     for diff in patch.diff:

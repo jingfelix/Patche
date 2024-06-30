@@ -62,10 +62,9 @@ def trace(filename: str, from_commit: str = "", flag_hunk_list: list[int] = None
         f"{from_commit_sha}-{process_title(filename)}.patch",
     )
 
-    for diff_ in whatthepatch.parse_patch(
+    for diff in whatthepatch.parse_patch(
         open(patch_path, mode="r", encoding="utf-8").read()
     ):
-        diff = Diff(**unpack(diff_))
         if diff.header.old_path == filename or diff.header.new_path == filename:
             try:
                 apply_result = apply_change(
@@ -98,8 +97,7 @@ def trace(filename: str, from_commit: str = "", flag_hunk_list: list[int] = None
         with open(patch_path, mode="r", encoding="utf-8") as (f):
             diffes = whatthepatch.parse_patch(f.read())
 
-            for diff_ in diffes:
-                diff = Diff(**unpack(diff_))
+            for diff in diffes:
                 if diff.header.old_path == filename or diff.header.new_path == filename:
                     try:
                         apply_result = apply_change(
