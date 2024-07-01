@@ -1,11 +1,100 @@
 import re
 
 from whatthepatch import parse_patch as wtp_parse_patch
+from whatthepatch.model import Diff as WTPDiff
 
-from ppatch.model import Patch
+from ppatch.config import settings
+from ppatch.model import Change, Diff, Hunk, Patch
 
 git_diffcmd_header = re.compile("^diff --git a/(.+) b/(.+)$")
 spliter_line = re.compile("^---$")
+
+
+def changes_to_hunks(changes: list[Change]) -> list[Hunk]:
+    """
+    Convert a list of changes to a list of hunks
+
+    Args:
+        changes (list[Change]): A list of changes
+
+    Returns:
+        list[Hunk]: A list of hunks
+    """
+
+    # 首先统计 Hunk 数
+    hunk_indexes = []
+    for change in changes:
+        if change.hunk not in hunk_indexes:
+            hunk_indexes.append(change.hunk)
+
+    # 将changes按照hunk分组，注意同一个 hunk 中的 change 要进行分类，前三行要放入前置上下文，中间的要放入中间上下文，后三行要放入后置上下文
+    hunk_list: list[Hunk] = []
+    for hunk_index in hunk_indexes:
+        hunk_changes = [change for change in changes if change.hunk == hunk_index]
+
+        # 这里遍历的顺序已经是正确的顺序
+        hunk_context = []
+        hunk_middle = []
+        hunk_post = []
+        # 首先正向遍历，获取前置上下文
+        for change in hunk_changes:
+            if change.old is not None and change.new is not None:
+                hunk_context.append(change)
+            else:
+                break
+
+        # 然后反向遍历，获取后置上下文
+        for change in reversed(hunk_changes):
+            if change.old is not None and change.new is not None:
+                hunk_post.append(change)
+            else:
+                break
+
+        assert len(hunk_context) <= settings.max_diff_lines
+        assert len(hunk_post) <= settings.max_diff_lines
+
+        # 最后获取中间代码
+        for change in hunk_changes:
+            if change not in hunk_context and change not in hunk_post:
+                hunk_middle.append(change)
+
+        # TODO: 舍弃在解析阶段添加 fuzz 的流程，换到 resolve 阶段添加
+        # hunk_context = hunk_context[0 : 3 - fuzz]
+        # hunk_post = hunk_post[0 : 3 - fuzz]
+
+        # 注意把后置上下文反转回来
+        hunk_post = list(reversed(hunk_post))
+
+        hunk_list.append(
+            Hunk(
+                index=hunk_index,
+                context=hunk_context,
+                middle=hunk_middle,
+                post=hunk_post,
+                all_=hunk_changes,
+            )
+        )
+
+    return hunk_list
+
+
+def wtp_diff_to_diff(wtp_diff: WTPDiff) -> Diff:
+    """
+    Convert a whatthepatch Diff object to a ppatch Diff object
+
+    Args:
+        wtp_diff (WTPDiff): A whatthepatch Diff object
+
+    Returns:
+        Diff: A ppatch Diff object
+    """
+
+    return Diff(
+        header=wtp_diff.header,
+        changes=wtp_diff.changes,
+        text=wtp_diff.text,
+        hunks=changes_to_hunks(wtp_diff.changes),
+    )
 
 
 def parse_patch(text: str) -> Patch:
@@ -36,7 +125,7 @@ def parse_patch(text: str) -> Patch:
             date=None,
             subject=None,
             message=None,
-            diff=list(wtp_parse_patch(text)),
+            diff=[wtp_diff_to_diff(diff) for diff in wtp_parse_patch(text)],
         )
     else:
         git_message_lines = lines[:idx]
@@ -86,5 +175,5 @@ def parse_patch(text: str) -> Patch:
         date=date,
         subject=subject.strip() if subject else None,
         message=message,
-        diff=list(wtp_parse_patch(text)),
+        diff=[wtp_diff_to_diff(diff) for diff in wtp_parse_patch(text)],
     )

@@ -6,7 +6,8 @@ import whatthepatch
 from ppatch.app import app, logger
 from ppatch.config import settings
 from ppatch.model import ApplyResult, Diff, File
-from ppatch.utils.common import process_title, unpack
+from ppatch.utils.common import process_title
+from ppatch.utils.parse import wtp_diff_to_diff
 from ppatch.utils.resolve import apply_change
 
 
@@ -65,10 +66,11 @@ def trace(filename: str, from_commit: str = "", flag_hunk_list: list[int] = None
     for diff in whatthepatch.parse_patch(
         open(patch_path, mode="r", encoding="utf-8").read()
     ):
+        diff = wtp_diff_to_diff(diff)
         if diff.header.old_path == filename or diff.header.new_path == filename:
             try:
                 apply_result = apply_change(
-                    diff.changes,
+                    diff.hunks,
                     origin_file.line_list,
                     flag=True,
                     flag_hunk_list=flag_hunk_list,
@@ -98,10 +100,11 @@ def trace(filename: str, from_commit: str = "", flag_hunk_list: list[int] = None
             diffes = whatthepatch.parse_patch(f.read())
 
             for diff in diffes:
+                diff = wtp_diff_to_diff(diff)
                 if diff.header.old_path == filename or diff.header.new_path == filename:
                     try:
                         apply_result = apply_change(
-                            diff.changes, new_line_list, trace=True, flag=True
+                            diff.hunks, new_line_list, trace=True, flag=True
                         )
                         new_line_list = apply_result.new_line_list
 

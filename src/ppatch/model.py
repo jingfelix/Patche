@@ -2,7 +2,9 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
-from whatthepatch.model import Change, Diff, Header
+from whatthepatch.model import Change
+from whatthepatch.model import Diff as WTPDiff
+from whatthepatch.model import Header
 
 
 class Line(BaseModel):
@@ -39,13 +41,17 @@ class Hunk(BaseModel):
     all_: list[Change]
 
 
+class Diff(WTPDiff):
+    hunks: list[Hunk]
+
+
 class Patch(BaseModel):
     sha: str
     author: str
     date: str
     subject: str
     message: str
-    diff: list[Diff]
+    diff: list[Diff] | list[WTPDiff] = []  # 临时的兼容方案
 
 
 class ApplyResult(BaseModel):

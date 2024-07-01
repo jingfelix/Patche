@@ -6,7 +6,7 @@ import whatthepatch
 
 from ppatch.app import app, logger
 from ppatch.model import Diff, File
-from ppatch.utils.common import unpack
+from ppatch.utils.parse import wtp_diff_to_diff
 from ppatch.utils.resolve import apply_change
 
 
@@ -37,9 +37,10 @@ def apply(
         diffes = whatthepatch.parse_patch(f.read())
 
         for diff in diffes:
+            diff = wtp_diff_to_diff(diff)
             if diff.header.old_path == filename or diff.header.new_path == filename:
                 apply_result = apply_change(
-                    diff.changes, new_line_list, reverse=reverse, fuzz=fuzz
+                    diff.hunks, new_line_list, reverse=reverse, fuzz=fuzz
                 )
                 # TODO: 检查失败数
                 new_line_list = apply_result.new_line_list

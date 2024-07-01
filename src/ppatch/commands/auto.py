@@ -7,8 +7,8 @@ from ppatch.commands.get import getpatches
 from ppatch.commands.trace import trace
 from ppatch.config import settings
 from ppatch.model import CommandResult, CommandType, Diff, File
-from ppatch.utils.common import process_title, unpack
-from ppatch.utils.parse import parse_patch
+from ppatch.utils.common import process_title
+from ppatch.utils.parse import changes_to_hunks, parse_patch
 from ppatch.utils.resolve import apply_change
 
 
@@ -37,8 +37,8 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
 
     parser = parse_patch(content)
     fail_file_list: dict[str, list[int]] = {}
-    raw_diffes = parser.diff  # TODO: patchobj 应该换成 Pydantic Model，然后注意换掉 unpack() 的调用
-    for diff in raw_diffes:
+    diffes: list[Diff] = parser.diff
+    for diff in diffes:
         target_file = diff.header.new_path  # 这里注意是 new_path 还是 old_path
 
         if not os.path.exists(target_file):
@@ -51,7 +51,7 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
 
         # 执行 Reverse，确定失败的 Hunk
         apply_result = apply_change(
-            diff.changes, origin_file.line_list, reverse=True, fuzz=3
+            diff.hunks, origin_file.line_list, reverse=True, fuzz=3
         )
 
         if len(apply_result.failed_hunk_list) != 0:
@@ -129,7 +129,9 @@ def auto(filename: str, output: str = typer.Option("", "--output", "-o")):
             for hunk in apply_result.failed_hunk_list:
                 changes.extend(hunk.all_)
 
-            _apply_result = apply_change(changes, line_list, reverse=True)
+            _apply_result = apply_change(
+                changes_to_hunks(changes), line_list, reverse=True
+            )
             # TODO: 错误处理
             try:
                 assert len(_apply_result.failed_hunk_list) == 0

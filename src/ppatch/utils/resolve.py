@@ -5,7 +5,7 @@ from ppatch.utils.common import find_list_positions
 
 
 def apply_change(
-    changes: list[Change],
+    hunk_list: list[Hunk],
     target: list[Line],
     reverse: bool = False,
     flag: bool = False,
@@ -20,73 +20,32 @@ def apply_change(
     if fuzz > settings.max_diff_lines or fuzz < 0:
         raise Exception(f"fuzz value should be less than {settings.max_diff_lines}")
 
-    # 如果反向，则交换所有的 old 和 new
-    # reverse 不支持 flag trace
+    # # 如果反向，则交换所有的 old 和 new
+    # # reverse 不支持 flag trace
+    # if reverse:
+    #     if flag:
+    #         raise Exception("flag is not supported with reverse")
+
+    #     for change in changes:
+    #         change.old, change.new = change.new, change.old
+
+    # TODO: 注意，修改了该函数后，需要将此处修改为对 hunk 内的 change 进行修改
     if reverse:
         if flag:
             raise Exception("flag is not supported with reverse")
 
-        for change in changes:
-            change.old, change.new = change.new, change.old
+        for hunk in hunk_list:
+            for change in hunk.context + hunk.middle + hunk.post:
+                change.old, change.new = change.new, change.old
 
-    # 首先统计 Hunk 数
-    hunk_indexes = []
-    for change in changes:
-        if change.hunk not in hunk_indexes:
-            hunk_indexes.append(change.hunk)
-
-    # TODO: 支持 -F 参数
-    # 将changes按照hunk分组，注意同一个 hunk 中的 change 要进行分类，前三行要放入前置上下文，中间的要放入中间上下文，后三行要放入后置上下文
-    hunk_list: list[Hunk] = []
-    conflict_hunk_num_list: list[int] = []
-    failed_hunk_list: list[Hunk] = []
-    for hunk_index in hunk_indexes:
-        hunk_changes = [change for change in changes if change.hunk == hunk_index]
-
-        # 这里遍历的顺序已经是正确的顺序
-        hunk_context = []
-        hunk_middle = []
-        hunk_post = []
-        # 首先正向遍历，获取前置上下文
-        for change in hunk_changes:
-            if change.old is not None and change.new is not None:
-                hunk_context.append(change)
-            else:
-                break
-
-        # 然后反向遍历，获取后置上下文
-        for change in reversed(hunk_changes):
-            if change.old is not None and change.new is not None:
-                hunk_post.append(change)
-            else:
-                break
-
-        assert len(hunk_context) <= settings.max_diff_lines
-        assert len(hunk_post) <= settings.max_diff_lines
-
-        # 最后获取中间代码
-        for change in hunk_changes:
-            if change not in hunk_context and change not in hunk_post:
-                hunk_middle.append(change)
-
-        hunk_context = hunk_context[0 : 3 - fuzz]
-        hunk_post = hunk_post[0 : 3 - fuzz]
-
-        # 注意把后置上下文反转回来
-        hunk_post = list(reversed(hunk_post))
-
-        hunk_list.append(
-            Hunk(
-                index=hunk_index,
-                context=hunk_context,
-                middle=hunk_middle,
-                post=hunk_post,
-                all_=hunk_changes,
-            )
-        )
+    for hunk in hunk_list:
+        # hunk.context 取后 3- fuzz 个
+        hunk.context = hunk.context[fuzz:]
+        hunk.post = hunk.post[0 : 3 - fuzz]
 
     # 然后对每个hunk进行处理，添加偏移
     changes: list[Change] = []
+    failed_hunk_list: list[Hunk] = []
     for hunk in hunk_list:
         changes_to_search = hunk.context + hunk.middle + hunk.post
         pos_list = find_list_positions(
@@ -192,6 +151,7 @@ def apply_change(
     add_count = 0
     del_count = 0
 
+    conflict_hunk_num_list: list[int] = []
     for change in changes:
         # 只修改新增行和删除行（只有这些行是被修改的）
         if change.old is None and change.new is not None:
