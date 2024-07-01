@@ -9,7 +9,7 @@ logger = logging.getLogger()
 
 from ppatch.utils.common import post_executed
 
-__version__ = "0.0.5b2"
+__version__ = "0.0.5b3"
 
 app = typer.Typer(result_callback=post_executed, no_args_is_help=True)
 
