@@ -113,9 +113,10 @@ def parse_patch(text: str) -> Patch:
             idx = i
             break
     else:
-        raise ValueError(
-            "No diff --git line found, check if the input is a valid patch"
-        )
+        # raise ValueError(
+        #     "No diff --git line found, check if the input is a valid patch"
+        # )
+        idx = len(lines) + 1
 
     git_message_lines: list[str] = []
     if idx == 0:

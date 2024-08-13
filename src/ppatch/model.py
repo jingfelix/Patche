@@ -46,11 +46,11 @@ class Diff(WTPDiff):
 
 
 class Patch(BaseModel):
-    sha: str
-    author: str
-    date: str
-    subject: str
-    message: str
+    sha: str | None
+    author: str | None
+    date: str | None
+    subject: str | None
+    message: str | None
     diff: list[Diff] | list[WTPDiff] = []  # 临时的兼容方案
 
 
