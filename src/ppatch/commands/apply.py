@@ -5,14 +5,14 @@ import typer
 import whatthepatch
 
 from ppatch.app import app, logger
-from ppatch.model import Diff, File
-from ppatch.utils.parse import wtp_diff_to_diff
+from ppatch.model import File
+from ppatch.utils.parse import parse_patch
 from ppatch.utils.resolve import apply_change
 
 
 @app.command()
 def apply(
-    filename: str,
+    # filename: str,
     patch_path: str,
     reverse: Annotated[bool, typer.Option("-R", "--reverse")] = False,
     fuzz: Annotated[int, typer.Option("-F", "--fuzz")] = 0,
@@ -20,36 +20,40 @@ def apply(
     """
     Apply a patch to a file.
     """
-    if not os.path.exists(filename):
-        logger.error(f"Warning: {filename} not found!")
-        return
 
     if not os.path.exists(patch_path):
         logger.error(f"Warning: {patch_path} not found!")
         return
 
-    logger.info(f"Apply patch {patch_path} to {filename}")
-
-    origin_file = File(file_path=filename)
-    new_line_list = origin_file.line_list
+    if reverse:
+        logger.info("Reversing patch...")
 
     with open(patch_path, mode="r", encoding="utf-8") as (f):
-        diffes = whatthepatch.parse_patch(f.read())
+        diffes = parse_patch(f.read()).diff
 
         for diff in diffes:
-            diff = wtp_diff_to_diff(diff)
-            if diff.header.old_path == filename or diff.header.new_path == filename:
+
+            old_filename = diff.header.old_path
+            new_filename = diff.header.new_path
+
+            if os.path.exists(old_filename):
+
+                logger.info(f"Applying patch to {old_filename}...")
+
+                new_line_list = File(file_path=old_filename).line_list
                 apply_result = apply_change(
                     diff.hunks, new_line_list, reverse=reverse, fuzz=fuzz
                 )
-                # TODO: 检查失败数
                 new_line_list = apply_result.new_line_list
-            else:
-                logger.info(f"Do not match with {filename}, skip")
-    # new_line_list, _ = _apply(patch_path, filename, new_line_list, "default")
 
-    # 写入文件
-    with open(filename, mode="w+", encoding="utf-8") as (f):
-        for line in new_line_list:
-            if line.status:
-                f.write(line.content + "\n")
+                # 检查失败数
+                for failed_hunk in apply_result.failed_hunk_list:
+                    logger.error(f"Failed hunk: {failed_hunk.index}")
+            else:
+                logger.error(f"{old_filename} not found!")
+
+            # 写入文件
+            with open(new_filename, mode="w+", encoding="utf-8") as f:
+                for line in new_line_list:
+                    if line.status:
+                        f.write(line.content + "\n")
