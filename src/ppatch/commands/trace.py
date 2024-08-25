@@ -104,7 +104,7 @@ def trace(filename: str, from_commit: str = "", flag_hunk_list: list[int] = None
                 if diff.header.old_path == filename or diff.header.new_path == filename:
                     try:
                         apply_result = apply_change(
-                            diff.hunks, new_line_list, trace=True, flag=True
+                            diff.hunks, new_line_list, trace=True, flag=True, fuzz=3
                         )
                         new_line_list = apply_result.new_line_list
 

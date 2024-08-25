@@ -20,15 +20,6 @@ def apply_change(
     if fuzz > settings.max_diff_lines or fuzz < 0:
         raise Exception(f"fuzz value should be less than {settings.max_diff_lines}")
 
-    # # 如果反向，则交换所有的 old 和 new
-    # # reverse 不支持 flag trace
-    # if reverse:
-    #     if flag:
-    #         raise Exception("flag is not supported with reverse")
-
-    #     for change in changes:
-    #         change.old, change.new = change.new, change.old
-
     # TODO: 注意，修改了该函数后，需要将此处修改为对 hunk 内的 change 进行修改
     if reverse:
         if flag:
@@ -38,20 +29,32 @@ def apply_change(
             for change in hunk.context + hunk.middle + hunk.post:
                 change.old, change.new = change.new, change.old
 
-    for hunk in hunk_list:
-        # hunk.context 取后 3- fuzz 个
-        hunk.context = hunk.context[fuzz:]
-        hunk.post = hunk.post[0 : 3 - fuzz]
-
     # 然后对每个hunk进行处理，添加偏移
     changes: list[Change] = []
     failed_hunk_list: list[Hunk] = []
     for hunk in hunk_list:
-        changes_to_search = hunk.context + hunk.middle + hunk.post
-        pos_list = find_list_positions(
-            [line.content for line in target],
-            [change.line for change in changes_to_search if change.old is not None],
-        )
+
+        current_hunk_fuzz = 0
+
+        while current_hunk_fuzz <= fuzz:
+
+            hunk.context = hunk.context[1:]
+            hunk.post = hunk.post[: fuzz - current_hunk_fuzz]
+
+            logger.debug(
+                f"current_fuzz: {current_hunk_fuzz} len(hunk.context): {len(hunk.context)} len(hunk.post): {len(hunk.post)}"
+            )
+
+            changes_to_search = hunk.context + hunk.middle + hunk.post
+            pos_list = find_list_positions(
+                [line.content for line in target],
+                [change.line for change in changes_to_search if change.old is not None],
+            )
+
+            if len(pos_list) != 0:
+                break
+
+            current_hunk_fuzz += 1
 
         # 初始位置是 context 的第一个
         # 注意，前几个有可能是空
@@ -62,27 +65,31 @@ def apply_change(
                 break
 
         # TODO: 这里不太对，要想一下怎么处理，不应该是加入 failed hunk list
-        # 仅在 -F 3 且只有添加行 的情况下出现
+        # 仅在 -F 3 且只有添加行 的情况下出现（指与 GNU patch 行为不一致）
         # 也可以看一下这样的情况有多少
-        if pos_origin is None:
+        if current_hunk_fuzz == fuzz and not pos_origin:
             failed_hunk_list.append(hunk)
-            hunk_list.remove(hunk)
+            logger.debug(f"Could not determine pos_origin")
+            logger.warning(f"Apply failed with hunk {hunk.index}")
+            continue
+
+        if len(pos_list) == 0:
+            failed_hunk_list.append(hunk)
+            logger.debug(f"Could not determine proper position")
+            logger.warning(f"Apply failed with hunk {hunk.index}")
             continue
 
         offset_list = [pos + 1 - pos_origin for pos in pos_list]  # 确认这里是否需要 1？
-
-        if len(offset_list) == 0:
-            failed_hunk_list.append(hunk)
-            logger.warning(f"Apply failed with hunk {hunk.index}")
-            # hunk_list.remove(hunk)
-            continue
-            # raise Exception("offsets do not intersect")
 
         # 计算最小 offset
         min_offset = None
         for offset in offset_list:
             if min_offset is None or abs(offset) < abs(min_offset):
                 min_offset = offset
+
+        logger.info(
+            f"Apply hunk {hunk.index} with offset {min_offset} fuzz {current_hunk_fuzz}"
+        )
 
         # 如果 reverse 为 True，则直接替换，不进行 flag 追踪
         if reverse:
@@ -105,7 +112,7 @@ def apply_change(
             for i in range(len(old_lines)):
                 if target[pos_new + i].content != old_lines[i]:
                     raise Exception(
-                        f'line {pos_new + i}, "{target[pos_new + i].content}" does not match "{new_lines[i]}"'
+                        f'line {pos_new + i}, "{target[pos_new + i].content}" does not match "{old_lines[i]}"'
                     )
 
             # 以切片的方式进行替换
