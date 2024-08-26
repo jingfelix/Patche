@@ -3,8 +3,8 @@ import re
 from whatthepatch import parse_patch as wtp_parse_patch
 from whatthepatch.model import Diff as WTPDiff
 
-from ppatch.config import settings
-from ppatch.model import Change, Diff, Hunk, Patch
+from Patche.config import settings
+from Patche.model import Change, Diff, Hunk, Patch
 
 git_diffcmd_header = re.compile("^diff --git a/(.+) b/(.+)$")
 spliter_line = re.compile("^---$")
@@ -58,10 +58,6 @@ def changes_to_hunks(changes: list[Change]) -> list[Hunk]:
             if change not in hunk_context and change not in hunk_post:
                 hunk_middle.append(change)
 
-        # TODO: 舍弃在解析阶段添加 fuzz 的流程，换到 resolve 阶段添加
-        # hunk_context = hunk_context[0 : 3 - fuzz]
-        # hunk_post = hunk_post[0 : 3 - fuzz]
-
         # 注意把后置上下文反转回来
         hunk_post = list(reversed(hunk_post))
 
@@ -80,13 +76,13 @@ def changes_to_hunks(changes: list[Change]) -> list[Hunk]:
 
 def wtp_diff_to_diff(wtp_diff: WTPDiff) -> Diff:
     """
-    Convert a whatthepatch Diff object to a ppatch Diff object
+    Convert a whatthepatch Diff object to a patche Diff object
 
     Args:
         wtp_diff (WTPDiff): A whatthepatch Diff object
 
     Returns:
-        Diff: A ppatch Diff object
+        Diff: A patche Diff object
     """
 
     return Diff(

@@ -2,12 +2,11 @@ import os
 from typing import Annotated
 
 import typer
-import whatthepatch
 
-from ppatch.app import app, logger
-from ppatch.model import File
-from ppatch.utils.parse import parse_patch
-from ppatch.utils.resolve import apply_change
+from Patche.app import app, logger
+from Patche.model import File
+from Patche.utils.parse import parse_patch
+from Patche.utils.resolve import apply_change
 
 
 @app.command()

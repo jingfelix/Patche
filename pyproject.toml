@@ -1,7 +1,7 @@
 [project]
-name = "ppatch"
-version = "0.0.5b3"
-description = "Universal tool to analysis patches, bulit for Linux Kernel."
+name = "Patche"
+version = "0.0.1"
+description = "Modern Patch in Python"
 authors = [
     {name = "jingfelix", email = "jingfelix@outlook.com"},
 ]
@@ -22,7 +22,7 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [project.scripts]
-ppatch = "ppatch.__init__:app"
+patche = "Patche.__init__:app"
 
 [tool.pdm]
 distribution = true

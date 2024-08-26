@@ -7,7 +7,7 @@ from rich.logging import RichHandler
 logging.basicConfig(level=logging.INFO, handlers=[RichHandler()], format="%(message)s")
 logger = logging.getLogger()
 
-from ppatch.utils.common import post_executed
+from Patche.utils.common import post_executed
 
 __version__ = "0.0.5b3"
 
@@ -24,14 +24,10 @@ def callback(verbose: bool = False, version: bool = False):
 
     if version:
         console = Console()
-        console.print(f"ppatch version {__version__}")
+        console.print(f"patche version {__version__}")
         raise typer.Exit()
 
 
-from ppatch.commands.apply import apply
-from ppatch.commands.auto import auto
-from ppatch.commands.get import getpatches
-from ppatch.commands.help import show_settings
-from ppatch.commands.show import show
-from ppatch.commands.symbol import getsymbol_command
-from ppatch.commands.trace import trace
+from Patche.commands.apply import apply
+from Patche.commands.help import show_settings
+from Patche.commands.show import show

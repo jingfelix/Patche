@@ -1,7 +1,7 @@
-from ppatch.app import logger
-from ppatch.config import settings
-from ppatch.model import ApplyResult, Change, Hunk, Line
-from ppatch.utils.common import find_list_positions
+from Patche.app import logger
+from Patche.config import settings
+from Patche.model import ApplyResult, Change, Hunk, Line
+from Patche.utils.common import find_list_positions
 
 
 def apply_change(

@@ -1,8 +1,8 @@
 import subprocess
 from typing import Any
 
-from ppatch.app import logger
-from ppatch.model import CommandResult, CommandType
+from Patche.app import logger
+from Patche.model import CommandResult, CommandType
 
 
 def clean_repo():

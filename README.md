@@ -1,27 +1,23 @@
-# ppatch
+# Patche
 
-A tool to analyze and patches between different Linux Kernel versions.
+Modern patch, written in Python.
 
 ## Config
 
-`ppatch` loads the configuration from a file named `.ppatch.env` in `$HOME`.
+`patche` loads the configuration from a file named `.patche.env` in `$HOME`.
 
 ```shell
-base_dir = "/home/laboratory/workspace/exps/ppatch" # The base directory to store the patches
-patch_store_dir = "_patches" # The directory to store the patches
 max_diff_lines = 3
 ```
 
-By default, base_dir is the base directory where `ppatch` is installed.
-
 ## Development
 
-`ppatch` uses `pdm` as package manager. To install the dependencies in your workspace, run:
+`patche` uses `pdm` as package manager. To install the dependencies in your workspace, run:
 
 ```bash
 pdm install --prod
 
-# If you want to trace ppatch execution
+# If you want to trace patche execution
 pdm install
 ```
 

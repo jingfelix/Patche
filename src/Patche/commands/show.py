@@ -3,8 +3,8 @@ import os
 from rich.console import Console
 from rich.table import Table
 
-from ppatch.app import app, logger
-from ppatch.utils.parse import parse_patch
+from Patche.app import app, logger
+from Patche.utils.parse import parse_patch
 
 
 @app.command()
