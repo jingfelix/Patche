@@ -7,9 +7,8 @@ from rich.logging import RichHandler
 logging.basicConfig(level=logging.INFO, handlers=[RichHandler()], format="%(message)s")
 logger = logging.getLogger()
 
+from Patche.__version__ import __version__
 from Patche.utils.common import post_executed
-
-__version__ = "0.0.5b3"
 
 app = typer.Typer(result_callback=post_executed, no_args_is_help=True)
 
