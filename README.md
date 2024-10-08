@@ -2,6 +2,12 @@
 
 Modern patch, written in Python.
 
+## Usage
+
+```shell
+patche apply <patch-file>
+```
+
 ## Config
 
 `patche` loads the configuration from a file named `.patche.env` in `$HOME`.

@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:35883457653897e26304508d572de32079d9747255fe14c2e96e20edeea08815"
+content_hash = "sha256:6555696240de046378cde17536e2701e6f633824f840d48863c2781c5abaff22"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -341,11 +341,11 @@ files = [
 
 [[package]]
 name = "whatthepatch-pydantic"
-version = "1.0.6a1"
+version = "1.0.6a2"
 requires_python = ">=3.7"
 summary = "A patch parsing and application library."
 groups = ["default"]
 files = [
-    {file = "whatthepatch_pydantic-1.0.6a1-py3-none-any.whl", hash = "sha256:729215b49682ca52b4f85b8ddfe2d61927b162235f98561796e5fef512c0b796"},
-    {file = "whatthepatch_pydantic-1.0.6a1.tar.gz", hash = "sha256:29326a7e8edd54f419b84d9166abf13a94d0537501ed1927369d2f997be89c38"},
+    {file = "whatthepatch_pydantic-1.0.6a2-py3-none-any.whl", hash = "sha256:d767a6e149d36ea07785eb56363a4b033c19b944a24dc8bcd3c0af6beb0744b9"},
+    {file = "whatthepatch_pydantic-1.0.6a2.tar.gz", hash = "sha256:a929f39579fe45bbeb7a4c599e1bd2ab93b9e947f2cfa02ddd82928469785880"},
 ]

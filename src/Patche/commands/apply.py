@@ -22,10 +22,12 @@ def apply(
 
     if not os.path.exists(patch_path):
         logger.error(f"Warning: {patch_path} not found!")
-        return
+        raise typer.Exit(code=1)
 
     if reverse:
         logger.info("Reversing patch...")
+
+    has_failed = False
 
     with open(patch_path, mode="r", encoding="utf-8") as (f):
         diffes = parse_patch(f.read()).diff
@@ -47,12 +49,17 @@ def apply(
 
                 # 检查失败数
                 for failed_hunk in apply_result.failed_hunk_list:
+                    has_failed = True
                     logger.error(f"Failed hunk: {failed_hunk.index}")
             else:
                 logger.error(f"{old_filename} not found!")
+                raise typer.Exit(code=1)
 
             # 写入文件
-            with open(new_filename, mode="w+", encoding="utf-8") as f:
-                for line in new_line_list:
-                    if line.status:
-                        f.write(line.content + "\n")
+            if not has_failed:
+                with open(new_filename, mode="w+", encoding="utf-8") as f:
+                    for line in new_line_list:
+                        if line.status:
+                            f.write(line.content + "\n")
+
+    raise typer.Exit(code=1 if has_failed else 0)
