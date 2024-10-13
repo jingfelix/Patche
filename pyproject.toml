@@ -11,7 +11,6 @@ dependencies = [
     "pydantic-settings>=2.2.1",
     "cscopy>=0.0.1",
     "whatthepatch-pydantic==1.0.6a2",
-    "structlog>=24.2.0",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
