@@ -2,9 +2,9 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
-from whatthepatch.model import Change
-from whatthepatch.model import Diff as WTPDiff
-from whatthepatch.model import Header
+from whatthepatch_pydantic.model import Change
+from whatthepatch_pydantic.model import Diff as WTPDiff
+from whatthepatch_pydantic.model import Header
 
 
 class Line(BaseModel):

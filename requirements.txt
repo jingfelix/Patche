@@ -17,4 +17,5 @@ shellingham==1.5.4
 typer[all]==0.15.1
 typing-extensions==4.12.2
 viztracer==1.0.0
-whatthepatch-pydantic==1.0.6a2
+whatthepatch==1.0.7
+whatthepatch-pydantic==1.0.6a3

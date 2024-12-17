@@ -1,7 +1,7 @@
 import re
 
-from whatthepatch import parse_patch as wtp_parse_patch
-from whatthepatch.model import Diff as WTPDiff
+from whatthepatch_pydantic import parse_patch as wtp_parse_patch
+from whatthepatch_pydantic.model import Diff as WTPDiff
 
 from Patche.config import settings
 from Patche.model import Change, Diff, Hunk, Patch

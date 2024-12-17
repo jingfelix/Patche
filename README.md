@@ -4,8 +4,34 @@ Modern patch, written in Python.
 
 ## Usage
 
+The following commands are supported:
+
+### apply
+
+Apply a patch to target files.
+
 ```shell
 patche apply <patch-file>
+```
+
+Options:
+- `-R, --reverse`: Assume patches were created with old and new files swapped
+- `-F, --fuzz LINES`: Set the fuzz factor to LINES for inexact matching
+
+### show
+
+Show details of a patch file.
+
+```shell
+patche show <patch-file>
+```
+
+### settings
+
+Display current configuration.
+
+```shell
+patche settings
 ```
 
 ## Config

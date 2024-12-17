@@ -11,10 +11,21 @@ from Patche.utils.resolve import apply_change
 
 @app.command()
 def apply(
-    # filename: str,
-    patch_path: str,
-    reverse: Annotated[bool, typer.Option("-R", "--reverse")] = False,
-    fuzz: Annotated[int, typer.Option("-F", "--fuzz")] = 0,
+    patch_path: Annotated[str, typer.Argument(help="Path to the patch file")],
+    reverse: Annotated[
+        bool,
+        typer.Option(
+            "-R",
+            "--reverse",
+            help="Assume patches were created with old and new files swapped.",
+        ),
+    ],
+    fuzz: Annotated[
+        int,
+        typer.Option(
+            "-F", "--fuzz", help="Set the fuzz factor to LINES for inexact matching."
+        ),
+    ] = 0,
 ):
     """
     Apply a patch to a file.

@@ -9,7 +9,7 @@ dependencies = [
     "typer[all]>=0.9.0",
     "pydantic>=2.5.3",
     "pydantic-settings>=2.2.1",
-    "whatthepatch-pydantic==1.0.6a2",
+    "whatthepatch-pydantic==1.0.6a3",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -28,4 +28,5 @@ distribution = true
 [tool.pdm.dev-dependencies]
 dev = [
     "viztracer>=0.16.3",
+    "whatthepatch>=1.0.7",
 ]

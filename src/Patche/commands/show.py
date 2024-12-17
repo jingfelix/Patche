@@ -1,5 +1,7 @@
 import os
+from typing import Annotated
 
+import typer
 from rich.console import Console
 from rich.table import Table
 
@@ -8,9 +10,9 @@ from Patche.utils.parse import parse_patch
 
 
 @app.command()
-def show(filename: str):
+def show(filename: Annotated[str, typer.Argument(help="Path to the patch file")]):
     """
-    Show detail of a patch file.
+    Show details of a patch file.
     """
     if not os.path.exists(filename):
         logger.error(f"Warning: {filename} not found!")
