@@ -4,19 +4,17 @@
 annotated-types==0.7.0
 click==8.1.7
 colorama==0.4.6; platform_system == "Windows"
-cscopy==0.0.1
 markdown-it-py==3.0.0
 mdurl==0.1.2
-objprint==0.2.3
-pydantic==2.8.2
-pydantic-core==2.20.1
-pydantic-settings==2.4.0
+objprint==0.3.0
+pydantic==2.10.3
+pydantic-core==2.27.1
+pydantic-settings==2.7.0
 pygments==2.18.0
 python-dotenv==1.0.1
-rich==13.7.1
+rich==13.9.4
 shellingham==1.5.4
-typer==0.12.3
-typer[all]==0.12.3
+typer[all]==0.15.1
 typing-extensions==4.12.2
-viztracer==0.16.3
+viztracer==1.0.0
 whatthepatch-pydantic==1.0.6a2
