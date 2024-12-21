@@ -1,12 +1,19 @@
-# Patche
+<div align="center">
+    <h1>Patche</h1>
+    <h3>Modern patch, written in Python.</h3>
+    <div>English | <a href="README.zh-CN.md">简体中文</a></div>
+    <br>
+    <a href="https://pypi.org/project/Patche/"><img src="https://img.shields.io/pypi/v/Patche" alt="PyPI"></a>
+    <!-- <a href="https://pypi.org/project/Patche/"><img src="https://img.shields.io/pypi/pyversions/Patche" alt="PyPI - Python Version"></a> -->
+    <a href="https://github.com/jingfelix/Patche/blob/main/LICENSE"><img src="https://img.shields.io/pypi/l/Patche" alt="PyPI - License"></a>
+    <a href="https://pdm-project.org"><img src="https://img.shields.io/badge/pdm-managed-blueviolet" alt="pdm-managed"></a>
+</div>
 
-Modern patch, written in Python.
-
-## Usage
+## 🔨 Usage
 
 The following commands are supported:
 
-### apply
+### ➡️ patche apply
 
 Apply a patch to target files.
 
@@ -18,7 +25,7 @@ Options:
 - `-R, --reverse`: Assume patches were created with old and new files swapped
 - `-F, --fuzz LINES`: Set the fuzz factor to LINES for inexact matching
 
-### show
+### ↕️ patche show
 
 Show details of a patch file.
 
@@ -26,7 +33,7 @@ Show details of a patch file.
 patche show <patch-file>
 ```
 
-### settings
+### ⚙️ patche settings
 
 Display current configuration.
 
@@ -34,7 +41,7 @@ Display current configuration.
 patche settings
 ```
 
-## Config
+## 🧰 Config
 
 `patche` loads the configuration from a file named `.patche.env` in `$HOME`.
 
@@ -42,7 +49,7 @@ patche settings
 max_diff_lines = 3
 ```
 
-## Development
+## 💻 Development
 
 `patche` uses `pdm` as package manager. To install the dependencies in your workspace, run:
 
