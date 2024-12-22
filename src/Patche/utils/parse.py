@@ -7,6 +7,7 @@ from Patche.config import settings
 from Patche.model import Change, Diff, Hunk, Patch
 
 git_diffcmd_header = re.compile("^diff --git a/(.+) b/(.+)$")
+unified_diff_header = re.compile("^---\s{1}")
 spliter_line = re.compile("^---$")
 
 
@@ -105,9 +106,14 @@ def parse_patch(text: str) -> Patch:
     idx = 0
     for i, line in enumerate(lines):
         # 这里考虑 git log 格式和 git format-patch 格式
-        if git_diffcmd_header.match(line) or spliter_line.match(line):
+        if (
+            git_diffcmd_header.match(line)
+            or spliter_line.match(line)
+            or unified_diff_header.match(line)
+        ):
             idx = i
             break
+
     else:
         # raise ValueError(
         #     "No diff --git line found, check if the input is a valid patch"
