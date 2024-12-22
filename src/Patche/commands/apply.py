@@ -19,7 +19,7 @@ def apply(
             "--reverse",
             help="Assume patches were created with old and new files swapped.",
         ),
-    ],
+    ] = False,
     fuzz: Annotated[
         int,
         typer.Option(
