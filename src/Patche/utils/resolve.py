@@ -9,7 +9,7 @@ def apply_change(
     target: list[Line],
     reverse: bool = False,
     flag_hunk_list: list[int] = None,
-    fuzz: int = 0,
+    fuzz: int = 2,  # set fuzz=2 according GNU Patch
 ) -> ApplyResult:
     """Apply a diff to a target string."""
 
