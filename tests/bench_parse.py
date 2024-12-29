@@ -47,8 +47,11 @@ def bench_parse():
     percentage_diffs_patche = []
     percentage_diffs_pydantic = []
 
-    for patch_file in os.listdir("tests/cases"):
-        with open(f"tests/cases/{patch_file}", "r") as f:
+    for patch_file in os.listdir("tests/cases/patches"):
+        if not patch_file.split(".")[-1] == "patch":
+            continue
+
+        with open(f"tests/cases/patches/{patch_file}", "r") as f:
             patch = f.read()
 
         try:
