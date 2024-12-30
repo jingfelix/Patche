@@ -1,10 +1,12 @@
 import re
+from typing import List, Optional
 
 from whatthepatch_pydantic import parse_patch as wtp_parse_patch
 from whatthepatch_pydantic.model import Diff as WTPDiff
 
 from Patche.config import settings
 from Patche.model import Change, Diff, Hunk, Patch
+from Patche.utils.header import CHANGE_LINE, HEADER_OLD, HUNK_START, parse_header
 
 git_diffcmd_header = re.compile("^diff --git a/(.+) b/(.+)$")
 unified_diff_header = re.compile("^---\s{1}")
@@ -92,6 +94,82 @@ def wtp_diff_to_diff(wtp_diff: WTPDiff) -> Diff:
         text=wtp_diff.text,
         hunks=changes_to_hunks(wtp_diff.changes),
     )
+
+
+def parse_unified_diff(text: str) -> Optional[List[Diff]]:
+    """解析 unified diff 格式的补丁"""
+    lines = iter(text.splitlines())
+    diffs: List[Diff] = []
+
+    while True:
+        try:
+            header = parse_header(lines)
+            if not header:
+                break
+
+            changes: List[Change] = []
+            hunk_index = 0
+
+            for line in lines:
+                # 检查是否是新的 diff 块开始
+                if HEADER_OLD.match(line):
+                    lines = iter([line] + list(lines))
+                    break
+
+                # 解析 hunk 头
+                hunk_match = HUNK_START.match(line)
+                if hunk_match:
+                    old_start = int(hunk_match.group(1))
+                    old_count = int(hunk_match.group(2) or "1")
+                    new_start = int(hunk_match.group(3))
+                    new_count = int(hunk_match.group(4) or "1")
+
+                    old_current = old_start
+                    new_current = new_start
+                    continue
+
+                # 解析变更行
+                change_match = CHANGE_LINE.match(line)
+                if change_match:
+                    change_type = change_match.group(1)
+                    content = change_match.group(2)
+
+                    if change_type == " ":
+                        # 上下文行
+                        changes.append(
+                            Change(
+                                old=old_current,
+                                new=new_current,
+                                line=content,
+                                hunk=hunk_index,
+                            )
+                        )
+                        old_current += 1
+                        new_current += 1
+                    elif change_type == "-":
+                        # 删除行
+                        changes.append(
+                            Change(
+                                old=old_current, new=None, line=content, hunk=hunk_index
+                            )
+                        )
+                        old_current += 1
+                    elif change_type == "+":
+                        # 新增行
+                        changes.append(
+                            Change(
+                                old=None, new=new_current, line=content, hunk=hunk_index
+                            )
+                        )
+                        new_current += 1
+
+            if header and changes:
+                diffs.append(Diff(header=header, changes=changes, text=text))
+
+        except StopIteration:
+            break
+
+    return diffs if diffs else None
 
 
 def parse_patch(text: str) -> Patch:
