@@ -26,6 +26,9 @@ def apply_change(
     # 然后对每个hunk进行处理，添加偏移
     failed_hunk_list: list[Hunk] = []
     last_pos = None
+
+    last_offset = 0
+    line_count_diff = 0
     for hunk in hunk_list:
 
         current_hunk_fuzz = 0
@@ -65,28 +68,52 @@ def apply_change(
         # TODO: 这里不太对，要想一下怎么处理，不应该是加入 failed hunk list
         # 仅在 -F 3 且只有添加行 的情况下出现（指与 GNU patch 行为不一致）
         # 也可以看一下这样的情况有多少
-        if current_hunk_fuzz == fuzz and not pos_origin:
-            failed_hunk_list.append(hunk)
-            logger.debug(f"Could not determine pos_origin")
-            logger.warning(f"Apply failed with hunk {hunk.index}")
-            continue
+        if current_hunk_fuzz == fuzz and pos_origin is not None:
+            # failed_hunk_list.append(hunk)
+            # logger.debug(f"Could not determine pos_origin")
+            # logger.warning(f"Apply failed with hunk {hunk.index}")
+            # continue
+            for change in changes_to_search:
+                if change.new is not None:
+                    pos_origin = change.new
+                    break
 
-        if len(pos_list) == 0:
-            failed_hunk_list.append(hunk)
-            logger.debug(f"Could not determine proper position")
-            logger.warning(f"Apply failed with hunk {hunk.index}")
-            continue
+            # 使用上一次偏移加上行数变化差值
+            min_offset = last_offset
+        else:
+            if len(pos_list) == 0:
+                failed_hunk_list.append(hunk)
+                logger.debug(f"Could not determine proper position")
+                logger.warning(f"Apply failed with hunk {hunk.index}")
+                continue
 
-        offset_list = [pos + 1 - pos_origin for pos in pos_list]  # 确认这里是否需要 1？
+            offset_list = [
+                pos + 1 - pos_origin for pos in pos_list
+            ]  # 确认这里是否需要 1？
 
-        # 计算最小 offset
-        min_offset = None
-        for offset in offset_list:
-            if min_offset is None or abs(offset) < abs(min_offset):
-                min_offset = offset
+            # 计算最小 offset
+            min_offset = None
+            for offset in offset_list:
+                if min_offset is None or abs(offset) < abs(min_offset):
+                    min_offset = offset
+
+            if reverse:
+                min_offset += line_count_diff
+                pos_origin -= line_count_diff
+
+        last_offset = min_offset
+
+        # 更新行数变化差值
+        hunk_add_count = sum(
+            1 for c in changes_to_search if c.old is None and c.new is not None
+        )
+        hunk_del_count = sum(
+            1 for c in changes_to_search if c.new is None and c.old is not None
+        )
+        line_count_diff += hunk_del_count - hunk_add_count
 
         logger.info(
-            f"Apply hunk {hunk.index} with offset {min_offset} fuzz {current_hunk_fuzz}"
+            f"Apply hunk {hunk.index} with offset {min_offset} fuzz {current_hunk_fuzz} line_diff {line_count_diff}"
         )
 
         # 直接按照 pos 进行替换

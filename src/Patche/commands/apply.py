@@ -47,6 +47,8 @@ def apply(
 
             old_filename = diff.header.old_path
             new_filename = diff.header.new_path
+            if reverse:
+                old_filename, new_filename = new_filename, old_filename
 
             logger.debug(f"old_filename: {old_filename} new_filename: {new_filename}")
 
