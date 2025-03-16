@@ -126,6 +126,7 @@ def parse_unified_diff(text: str) -> Optional[List[Diff]]:
 
                     old_current = old_start
                     new_current = new_start
+                    hunk_index += 1
                     continue
 
                 # 解析变更行
@@ -135,7 +136,7 @@ def parse_unified_diff(text: str) -> Optional[List[Diff]]:
                     content = change_match.group(2)
 
                     if change_type == " ":
-                        # 上下文行
+                        # 上下文行 / 中间行
                         changes.append(
                             Change(
                                 old=old_current,
@@ -164,7 +165,14 @@ def parse_unified_diff(text: str) -> Optional[List[Diff]]:
                         new_current += 1
 
             if header and changes:
-                diffs.append(Diff(header=header, changes=changes, text=text))
+                diffs.append(
+                    Diff(
+                        header=header,
+                        changes=changes,
+                        text=text,
+                        hunks=changes_to_hunks(changes),
+                    )
+                )
 
         except StopIteration:
             break
@@ -206,7 +214,8 @@ def parse_patch(text: str) -> Patch:
             date=None,
             subject=None,
             message=None,
-            diff=[wtp_diff_to_diff(diff) for diff in wtp_parse_patch(text)],
+            # diff=[wtp_diff_to_diff(diff) for diff in wtp_parse_patch(text)],
+            diff=parse_unified_diff(text),
         )
     else:
         git_message_lines = lines[:idx]
