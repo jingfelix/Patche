@@ -44,12 +44,16 @@ class ApplyTest(unittest.TestCase):
         self.assertEqual(len(self.lao), 11)
         self.assertEqual(len(self.tzu), 13)
 
-    # def test_diff_unified(self) -> None:
-    #     with open("tests/cases/diff-unified.diff") as f:
-    #         diff_text = f.read()
+    def test_diff_unified(self) -> None:
+        with open("tests/cases/diff-unified.diff") as f:
+            diff_text = f.read()
 
-    #     self.assertEqual(list_line_to_str(_apply(self.lao, diff_text)), list_line_to_str(self.tzu))
-    #     self.assertEqual(list_line_to_str(_apply_r(self.tzu, diff_text)), list_line_to_str(self.lao))
+        self.assertEqual(
+            list_line_to_str(_apply(self.lao, diff_text)), list_line_to_str(self.tzu)
+        )
+        self.assertEqual(
+            list_line_to_str(_apply_r(self.tzu, diff_text)), list_line_to_str(self.lao)
+        )
 
     def test_diff_unified2(self) -> None:
         with open("tests/cases/diff-unified2.diff") as f:
