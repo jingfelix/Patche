@@ -21,6 +21,7 @@ build-backend = "pdm.backend"
 
 [project.scripts]
 patche = "Patche.__init__:app"
+patche-mcp = "Patche.mcp.__init__:app"
 
 [tool.pdm]
 distribution = true
@@ -29,4 +30,9 @@ distribution = true
 dev = [
     "viztracer>=0.16.3",
     "whatthepatch>=1.0.7",
+]
+
+[dependency-groups]
+mcp = [
+    "mcp[cli]>=1.6.0",
 ]

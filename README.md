@@ -41,6 +41,14 @@ Display current configuration.
 patche settings
 ```
 
+## 📚 Examples
+
+Here are some examples of how to use `patche` in different scenarios:
+
+| Usage | Introduction |
+| --- | --- |
+| [MCP Server](docs/mcp.md) | A simple MCP server that offers patch utility for LLMs |
+
 ## 🧰 Config
 
 `patche` loads the configuration from a file named `.patche.env` in `$HOME`.
