@@ -36,8 +36,9 @@ def patche_show(patch_path: str) -> str:
     """
 
     if not os.path.exists(patch_path):
-        logger.error(f"Warning: {patch_path} not found!")
-        return
+        err = f"Warning: {patch_path} not found!"
+        logger.error(err)
+        return err
 
     content = ""
     with open(patch_path, mode="r", encoding="utf-8") as (f):
