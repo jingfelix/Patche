@@ -1,6 +1,6 @@
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool
+from mcp.types import Prompt, TextContent, Tool
 
 from Patche.app import logger
 from Patche.mcp.model import (
@@ -10,6 +10,7 @@ from Patche.mcp.model import (
     PatcheShow,
     PatcheTools,
 )
+from Patche.mcp.prompts import prompts
 from Patche.mcp.tools import patche_apply, patche_config, patche_list, patche_show
 
 server = None
@@ -79,6 +80,21 @@ async def serve(repository: str | None) -> None:
                 return [TextContent(type="text", text=f"Patche apply: {result}")]
             case _:
                 raise NotImplementedError(f"Tool {name} is not implemented")
+
+    @server.list_prompts()
+    async def list_prompts() -> list[str]:
+        """
+        List all the prompts.
+        """
+        return prompts
+
+    @server.call_prompt()
+    async def call_prompt(name: str, arguments: dict) -> list[TextContent]:
+        """
+        Call the prompt with the given name and arguments.
+        """
+        logger.info(f"Received prompt call: {name} with arguments: {arguments}")
+        raise NotImplementedError(f"Prompt {name} is not implemented")
 
     options = server.create_initialization_options()
     async with stdio_server() as (read_stream, write_stream):
