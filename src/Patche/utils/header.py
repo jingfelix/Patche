@@ -16,6 +16,10 @@ def parse_header(lines: Iterator[str]) -> Optional[Header]:
     old_line = next(lines, "")
     new_line = next(lines, "")
 
+    if GIT_HEADER.match(old_line):
+        old_line = next(lines, "")
+        new_line = next(lines, "")
+
     old_match = HEADER_OLD.match(old_line)
     new_match = HEADER_NEW.match(new_line)
 

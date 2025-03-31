@@ -66,6 +66,10 @@ pdm install --prod
 
 # If you want to trace patche execution
 pdm install
+
+# If you want to run tests
+pdm run python3 -m unittest tests/test_parse.py
+pdm run python3 -m unittest tests/test_apply.py
 ```
 
 ref: [PDM Documentation](https://pdm-project.org/en/latest/usage/dependency/)
