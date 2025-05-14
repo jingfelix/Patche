@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/jingfelix-patche-badge.png)](https://mseep.ai/app/jingfelix-patche)
+
 <div align="center">
     <h1>Patche</h1>
     <h3>Modern patch, written in Python.</h3>
